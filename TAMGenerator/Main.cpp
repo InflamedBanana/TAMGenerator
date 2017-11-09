@@ -1,6 +1,8 @@
 #include <CImg/CImg.h>
 #include <vector>
 #include <iostream>
+#include <string>
+#include <cmath>
 
 using namespace cimg_library;
 
@@ -102,13 +104,26 @@ int main() {
 	Point p( pos, radius, opacity, 1.f-hardness);
 	
 
-	CImgDisplay rslt_display(512, 512, "Rslt"), opt_display( 500, 250, "Options" );
+	CImgDisplay rslt_display(256, 256, "Rslt")/*, opt_display( 500, 250, "Options" )*/;
 
-	rsltImage.draw_circle(rsltImage.width() * p.position().x, rsltImage.height() * p.position().y, p.radius(), white, p.opacity() ).blur(p.hardness()).display(rslt_display);
-	//rsltImage.draw_line(5, 15, 32, 15, blue).display(rslt_display);
+	rsltImage.draw_circle((int)nearbyint(rsltImage.width() * p.position().x), (int)nearbyint(rsltImage.height() * p.position().y), p.radius(), white, p.opacity() ).blur(p.hardness()).display(rslt_display);
+	
+	int average = 0;
+
+	for (const auto& pixel : rsltImage)
+		if ((int)pixel > 0)
+		{
+			std::cout << (int)pixel << std::endl;
+			average += (int)pixel;
+		}
+
+	average /= (int)nearbyint(rsltImage.width() * rsltImage.height());
+
+	std::cout << "average value " << average << std::endl;
+
 	tamOptions opt;
 
-	while (!rslt_display.is_closed() && !opt_display.is_closed() ) 
+	while (!rslt_display.is_closed() /*&& !opt_display.is_closed() */)
 	{
 
 	}
