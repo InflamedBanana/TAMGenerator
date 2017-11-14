@@ -5,8 +5,6 @@
 #include <cmath>
 #include <ctime>
 #include <unordered_set>
-#include <set>
-#include <unordered_map>
 
 using namespace cimg_library;
 
@@ -15,21 +13,26 @@ const unsigned char color_white[] = { 255,255,255 };
 
 struct tamOptions
 {
-	//unsigned int mapSize;
 	unsigned int maxMapSize;
-	//unsigned int minMapSize;
 	unsigned char greyLvl;
-};
+	unsigned int minGrey;
+	unsigned int maxGrey;
+	unsigned int nbOfGreys;
+	float hardness;
+	int circleRadius;
+
+
+}options;
 
 struct Position
 {
 	float x;
 	float y;
 
-	/*bool operator==(Position& b)
+	bool operator==(Position& b)
 	{
 		return (this->x == b.x && this->y == b.y);
-	}*/
+	}
 };
 
 class Point
@@ -54,10 +57,10 @@ public:
 	float hardness(float value){ if (value > 1) m_hardness= 1; else if (value < 0) m_hardness= 0; else m_hardness = value; }
 	CImg<unsigned char>& img() { return m_img; }
 
-	/*bool operator==(Point& b)
+	bool operator==(Point& b)
 	{
 		return (this->m_position == b.m_position);
-	}*/
+	}
 };
 
 class Circle : public Point
@@ -67,8 +70,6 @@ protected :
 	void drawImg()
 	{
 		m_img.resize(m_radius * 6, m_radius * 6);
-		/*const unsigned char black[] = { 0,0,0 };
-		const unsigned char white[] = { 255,255,255 };*/
 		int center = (int)nearbyint(m_img.width() / 2.f);
 		m_img.draw_circle(center, center, m_radius, color_black, 1.f).blur(m_hardness);
 
@@ -112,8 +113,6 @@ void ChangeRand()
 class Map
 {
 private:
-	
-
 	std::unordered_set<Circle*> m_circles;
 	CImg<unsigned char> m_img;
 	int m_greyLvl;
@@ -135,9 +134,9 @@ private:
 
 public:
 	Map() {};
-	Map(int _size, int _greylvl) :m_img(_size, _size, 0, 1, 0), m_size(_size), m_greyLvl(_greylvl) {};
+	Map(int _size, int _greylvl) :m_img(_size, _size, 1, 1, 255), m_size(_size), m_greyLvl(_greylvl) {};
 
-	const std::unordered_set<Circle*>& circles() const { return m_circles; }
+	//const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const CImg<unsigned char>& img() const { return m_img; }
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
@@ -150,14 +149,29 @@ public:
 		if(_precedingToneMap != nullptr)
 			m_circles.insert(_precedingToneMap->m_circles.begin(), _precedingToneMap->m_circles.end());
 
-		/*if(_precedingMap != nullptr || _precedingToneMap != nullptr)
+		if (_precedingMap != nullptr || _precedingToneMap != nullptr)
 			for (const auto& circle : m_circles)
-				m_img.draw_circle(circle.position().x, circle.position().y, circle.radius(), color_white, 1.).blur(circle.hardness());*/
+				m_img.draw_circle((*circle).position().x, (*circle).position().y, (*circle).radius(), color_white, 1.).blur((*circle).hardness());
 
-		/*while ( CheckGreyLevel() < m_greyLvl )
+		while ( int grey = CheckGreyLevel() > m_greyLvl )
 		{
+			std::cout << "current grey lvl " << grey << std::endl;
 
-		}*/
+			Position pointPos;
+			do
+			{
+				pointPos.x = (float)(rand() % 100) / 100.f;
+				pointPos.y = (float)(rand() % 100) / 100.f;
+				//std::cout << "point pos : " << ((int)(m_img.width() * pointPos.x)) << "  " << ((int)(m_img.height() * pointPos.y)) << std::endl;
+			} while ( (int)m_img.atXY((int)(m_img.width() * pointPos.x), (int)(m_img.height() * pointPos.y), 1, 0) < 128 );
+
+			Circle* pCircle = new Circle(pointPos, options.circleRadius, options.hardness);
+			m_circles.insert(pCircle);
+
+			m_img.draw_circle((int)nearbyint(pointPos.x * m_img.width()), (int)nearbyint(pointPos.y * m_img.height()), options.circleRadius, color_black, 1.f).blur( 1.f / options.hardness );
+
+			delete pCircle;
+		}
 
 		std::cout << "Map " << m_size << " tone " << m_greyLvl << " generated." << std::endl;
 		m_isGenerated = true;
@@ -171,26 +185,27 @@ private :
 	int m_greylvl;
 
 public :
+	Tone(int _greyLvl) : m_greylvl(_greyLvl) {};
 	std::vector<Map> maps() const { return m_maps; }
 	int greylvl() const { return m_greylvl; }
 
 	void Generate( const int _maxMapSize, const Tone* _precedingTone )
 	{
-		for (int size = 16; size < _maxMapSize; size *= 2)
+		for (int size = 16; size < _maxMapSize * 2 ; size *= 2)
 		{
 			Map newMap(size, m_greylvl);
 			m_maps.push_back(newMap);
 		}
 
 		int i(0);
-		for (std::vector<Map>::iterator it = m_maps.begin(), previt = _precedingTone->maps().begin(); it != m_maps.end(); ++it, ++i)
+		for (std::vector<Map>::iterator it = m_maps.begin(); it != m_maps.end(); ++it, ++i)
 		{
 			if (it == m_maps.begin())
-				it->Generate(nullptr, (_precedingTone == nullptr) ? nullptr : &(*previt) );
+				it->Generate(nullptr, (_precedingTone == nullptr) ? nullptr : &_precedingTone->maps()[i] );
 			else
-				it->Generate( &(*(it - 1)) , (_precedingTone == nullptr) ? nullptr : &(*previt));
+				it->Generate( &(*(it - 1)) , (_precedingTone == nullptr) ? nullptr : &_precedingTone->maps()[i] );
 		}
-		std::cout << "tone " << m_greylvl << " generated." << std::endl;
+		std::cout << "tone " << m_greylvl << " generated with "<< m_maps.size() << " maps." << std::endl;
 	}
 
 	void Save()
@@ -200,71 +215,57 @@ public :
 };
 
 int main() {
-	/*CImg<unsigned char> image(500,400,1,3,50), visu(500, 400, 1, 3, 0);
 
-	const unsigned char red[] = { 255,0,0 }, green[] = { 0,255,0 }, blue[] = { 0,0,255 };
-
-	image.blur(2.5);
-	CImgDisplay main_disp(image, "Click a point"), draw_disp(visu, "Intensity profile");
-
-	while (!main_disp.is_closed() && !draw_disp.is_closed()) {
-		main_disp.wait();
-		if (main_disp.button() && main_disp.mouse_y() >= 0) {
-			const int y = main_disp.mouse_y();
-			visu.fill(0).draw_graph(image.get_crop(0, y, 0, 0, image.width() - 1, y, 0, 0), red, 1, 1, 0, 255, 0);
-			visu.draw_graph(image.get_crop(0, y, 0, 1, image.width() - 1, y, 0, 1), green, 1, 1, 0, 255, 0);
-			visu.draw_graph(image.get_crop(0, y, 0, 2, image.width() - 1, y, 0, 2), blue, 1, 1, 0, 255, 0).display(draw_disp);
-		}
-	}*/
-
-	int radius;
-	float hardness;
-	int nbOfGreys;
-	int minGrey;
-	int maxGrey;
-	int maxMapSize;
-
+	ChangeRand();
 
 	std::cout << "Nb of greys you want :" << std::endl;
-	do { std::cin >> nbOfGreys; } while (nbOfGreys < 1 || nbOfGreys > 10);
-	std::cout << nbOfGreys << std::endl;
+	do { std::cin >> options.nbOfGreys; } while (options.nbOfGreys < 2 || options.nbOfGreys > 10);
 	std::cout << "min grey value :" << std::endl;
-	do { std::cin >> minGrey; } while (minGrey < 0 || minGrey > 255);
+	do { std::cin >> options.minGrey; } while (options.minGrey < 0 || options.minGrey > 255);
 	std::cout << "max grey value :" << std::endl;
-	do { std::cin >> maxGrey; } while (maxGrey < minGrey || maxGrey > 255);
+	do { std::cin >> options.maxGrey; } while (options.maxGrey < options.minGrey || options.maxGrey > 255);
 	std::cout << "max map size :" << std::endl;
-	do { std::cin >> maxMapSize; } while (maxMapSize < 16 || !(maxMapSize & (maxMapSize - 1)) == 0);
+	do { std::cin >> options.maxMapSize; } while (options.maxMapSize < 16 || !(options.maxMapSize & (options.maxMapSize - 1)) == 0);
 	std::cout << "Radius :" << std::endl;
-	do { std::cin >> radius; } while (radius < 1);
+	do { std::cin >> options.circleRadius; } while (options.circleRadius < 1);
 	std::cout << "Hardness : [0-1]" << std::endl;
-	do { std::cin >> hardness; } while (hardness < 0 || hardness > 1);
-	
-	std::vector<int> greyLvls;
-	std::vector<Tone> tones;
+	do { std::cin >> options.hardness; } while (options.hardness < 0 || options.hardness > 1);
 
-	//int greyRange(255 - maxGrey);
-
-	std::vector<CImg<unsigned char>> tests;
 	std::vector<CImgDisplay> displays;
 
-	for (int i = minGrey; i < maxGrey; i += (maxGrey / nbOfGreys) + minGrey)
-	{//à l'envers ... du plus clair au plus foncé
-		greyLvls.push_back(i);
-		CImg<unsigned char> test(256, 256, 1, 1, i);
-		tests.push_back(test);
-		CImgDisplay display(256, 246, std::to_string(i).c_str());
-		displays.push_back(display);
-		tests.back().display(displays.back());
-	}
+	std::vector<Tone> tones;
 
-	CImgDisplay rslt_display(256, 256, "Rslt");
-
-	//tamOptions opt;
-
-	while (!rslt_display.is_closed() /*&& !opt_display.is_closed() */)
+	for ( int indice = 0, greyValue = options.maxGrey; indice < (int)options.nbOfGreys; ++indice, greyValue -= ( ( options.maxGrey - options.minGrey ) / ( options.nbOfGreys - 1 ) ) )
 	{
-
+		Tone tone(greyValue);
+		tones.push_back(tone);
 	}
+
+	for (std::vector<Tone>::iterator toneIt = tones.begin(); toneIt != tones.end(); ++toneIt)
+	{
+		if (toneIt == tones.begin())
+			toneIt->Generate(options.maxMapSize, nullptr);
+		else
+			toneIt->Generate(options.maxMapSize, &(*(toneIt - 1)));
+	}
+
+	for(const auto& tone : tones)
+		for (const auto& map : tone.maps())
+		{
+			CImgDisplay display( 256, 256, std::to_string( map.greyLvl() ).c_str() );
+			displays.push_back( display );
+			map.img().display( displays.back() );
+		}
+
+	/*for (const auto& map : tone.maps())
+	{
+		CImgDisplay display(256, 256, std::to_string(map.size()).c_str());
+		displays.push_back(display);
+		map.img().display(displays.back());
+	}*/
+
+	std::cout << "FINISHED" << std::endl;
+	system("PAUSE");
 
 	return 0;
 }
