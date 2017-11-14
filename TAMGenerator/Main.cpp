@@ -243,8 +243,8 @@ int main() {
 
 	for (std::vector<Tone>::iterator toneIt = tones.begin(); toneIt != tones.end(); ++toneIt)
 	{
-		if (toneIt == tones.begin())
-			toneIt->Generate(options.maxMapSize, nullptr);
+		if ( toneIt == tones.begin() )
+			toneIt->Generate( options.maxMapSize, nullptr );
 		else
 			toneIt->Generate(options.maxMapSize, &(*(toneIt - 1)));
 	}
