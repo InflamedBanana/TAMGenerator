@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <unordered_set>
+#include <random>
 
 using namespace cimg_library;
 
@@ -20,7 +21,7 @@ struct tamOptions
 	unsigned int nbOfGreys;
 	float hardness;
 	int circleRadius;
-
+	int radiusVariation;
 
 }options;
 
@@ -105,10 +106,10 @@ public:
 	unsigned int length(unsigned int value) { m_length = value; }
 };
 
-void ChangeRand()
+/*void ChangeRand()
 {
 	srand(time(NULL));
-}
+}*/
 
 class Map
 {
@@ -119,13 +120,7 @@ private:
 	int m_size;
 	bool m_isGenerated;
 
-	int CheckGreyLevel()
-	{
-		int average = 0;
-		for (const auto& pixel : m_img)
-			average += (int)pixel;
-		return (int)nearbyint(average / ( m_img.width() * m_img.height() ) );
-	}
+	
 
 	void AddCircle()
 	{
@@ -134,47 +129,83 @@ private:
 
 public:
 	Map() {};
-	Map(int _size, int _greylvl) :m_img(_size, _size, 1, 1, 255), m_size(_size), m_greyLvl(_greylvl) {};
+	Map(int _size, int _greylvl) :m_img(_size, _size, 1, 3, 255), m_size(_size), m_greyLvl(_greylvl) {};
 
-	//const std::unordered_set<Circle*>& circles() const { return m_circles; }
+	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const CImg<unsigned char>& img() const { return m_img; }
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
+	int CheckGreyLevel() const
+	{
+		int average = 0;
+		for (const auto& pixel : m_img)
+			average += (int)pixel;
+
+
+		return (int)nearbyint(average / m_img.size());
+	}
+
 	void Generate(const Map* _precedingMap, const Map* _precedingToneMap )
 	{
 		if(_precedingMap != nullptr)
-			m_circles.insert(_precedingMap->m_circles.begin(), _precedingMap->m_circles.end());
+			for (const auto& point : _precedingMap->circles())
+			{
+				m_img.draw_circle((int)nearbyint(point->position().x * m_img.width()), (int)nearbyint(point->position().y * m_img.height()), point->radius(), color_black, 1.).blur(point->hardness());
+				m_circles.insert(point);
+			}
+
 		if(_precedingToneMap != nullptr)
-			m_circles.insert(_precedingToneMap->m_circles.begin(), _precedingToneMap->m_circles.end());
+			for (const auto& point : _precedingToneMap->circles())
+			{
+				m_img.draw_circle((int)nearbyint(point->position().x * m_img.width()), (int)nearbyint(point->position().y * m_img.height()), point->radius(), color_black, 1.).blur(point->hardness());
+				m_circles.insert(point);
+			}
 
-		if (_precedingMap != nullptr || _precedingToneMap != nullptr)
-			for (const auto& circle : m_circles)
-				m_img.draw_circle((*circle).position().x, (*circle).position().y, (*circle).radius(), color_white, 1.).blur((*circle).hardness());
+		std::random_device rd;
+		std::mt19937 rng(rd());
+		std::uniform_int_distribution<int> uni(0 , m_size - 1);
 
-		while ( int grey = CheckGreyLevel() > m_greyLvl )
+		while ( CheckGreyLevel() > m_greyLvl )
 		{
-			std::cout << "current grey lvl " << grey << std::endl;
-
 			Position pointPos;
 			do
 			{
-				pointPos.x = (float)(rand() % 100) / 100.f;
-				pointPos.y = (float)(rand() % 100) / 100.f;
-				//std::cout << "point pos : " << ((int)(m_img.width() * pointPos.x)) << "  " << ((int)(m_img.height() * pointPos.y)) << std::endl;
-			} while ( (int)m_img.atXY((int)(m_img.width() * pointPos.x), (int)(m_img.height() * pointPos.y), 1, 0) < 128 );
+				pointPos.x = (float)( uni(rng) / ( (float)m_size - 1.f ) );
+				pointPos.y = (float)( uni(rng) / ( (float)m_size -1.f ) );
+			} while ( (int)m_img.atXY((int)(m_img.width() * pointPos.x), (int)(m_img.height() * pointPos.y), 1, 0) < 200 );
 
-			Circle* pCircle = new Circle(pointPos, options.circleRadius, options.hardness);
-			m_circles.insert(pCircle);
+			short int sign(1);
+			short int variation(rand() % ( (int)nearbyint( options.circleRadius * ( options.radiusVariation / 100.f ) + 1 ) ) );
+			if (options.radiusVariation > 0)
+				sign = ( rand() % 2 + 1) < 1? -1 : 1;
+			short int radius( options.circleRadius + variation * sign);
 
-			m_img.draw_circle((int)nearbyint(pointPos.x * m_img.width()), (int)nearbyint(pointPos.y * m_img.height()), options.circleRadius, color_black, 1.f).blur( 1.f / options.hardness );
+			std::cout << "VARIATION " << variation << " radius : " << radius  << std::endl;
+			m_circles.insert(new Circle(pointPos, radius, options.hardness));
 
-			delete pCircle;
+			m_img.draw_circle((int)nearbyint( pointPos.x * m_img.width() ), (int)nearbyint( pointPos.y * m_img.height() ), radius, color_black, 1.f)/*.blur( options.hardness )*/;
+
 		}
+
+		SaveMap();
 
 		std::cout << "Map " << m_size << " tone " << m_greyLvl << " generated." << std::endl;
 		m_isGenerated = true;
+	}
+
+	void SaveMap()
+	{
+		std::string file("");
+		file.append(std::to_string(m_greyLvl));
+		file.append("_");
+		file.append(std::to_string(m_size));
+		file.append(".bmp");
+		 
+		m_img.save(file.c_str());
+
+		std::cout << "Map " << m_size << " tone " << m_greyLvl << " saved !" << std::endl;
 	}
 };
 
@@ -210,13 +241,13 @@ public :
 
 	void Save()
 	{
-
+		
 	}
 };
 
-int main() {
-
-	ChangeRand();
+int main()
+{
+	srand(time(0));
 
 	std::cout << "Nb of greys you want :" << std::endl;
 	do { std::cin >> options.nbOfGreys; } while (options.nbOfGreys < 2 || options.nbOfGreys > 10);
@@ -226,17 +257,20 @@ int main() {
 	do { std::cin >> options.maxGrey; } while (options.maxGrey < options.minGrey || options.maxGrey > 255);
 	std::cout << "max map size :" << std::endl;
 	do { std::cin >> options.maxMapSize; } while (options.maxMapSize < 16 || !(options.maxMapSize & (options.maxMapSize - 1)) == 0);
-	std::cout << "Radius :" << std::endl;
+	std::cout << "Circle Radius :" << std::endl;
 	do { std::cin >> options.circleRadius; } while (options.circleRadius < 1);
-	std::cout << "Hardness : [0-1]" << std::endl;
-	do { std::cin >> options.hardness; } while (options.hardness < 0 || options.hardness > 1);
-
+	std::cout << "Radius Variation ( in % ):" << std::endl;
+	std::cin >> options.radiusVariation;
+	/*std::cout << "Hardness : [0-1]" << std::endl;
+	do { std::cin >> options.hardness; } while (options.hardness < 0 || options.hardness > 1);*/
+	options.hardness = 0;
 	std::vector<CImgDisplay> displays;
 
 	std::vector<Tone> tones;
 
 	for ( int indice = 0, greyValue = options.maxGrey; indice < (int)options.nbOfGreys; ++indice, greyValue -= ( ( options.maxGrey - options.minGrey ) / ( options.nbOfGreys - 1 ) ) )
 	{
+		std::cout << "tone grey value " << greyValue << std::endl;
 		Tone tone(greyValue);
 		tones.push_back(tone);
 	}
@@ -252,17 +286,13 @@ int main() {
 	for(const auto& tone : tones)
 		for (const auto& map : tone.maps())
 		{
-			CImgDisplay display( 256, 256, std::to_string( map.greyLvl() ).c_str() );
+			std::string mapName(std::to_string(map.greyLvl()));
+			mapName.append("  ");
+			mapName.append(std::to_string(map.size()));
+			CImgDisplay display( 256, 256, mapName.c_str(), 0 );
 			displays.push_back( display );
 			map.img().display( displays.back() );
 		}
-
-	/*for (const auto& map : tone.maps())
-	{
-		CImgDisplay display(256, 256, std::to_string(map.size()).c_str());
-		displays.push_back(display);
-		map.img().display(displays.back());
-	}*/
 
 	std::cout << "FINISHED" << std::endl;
 	system("PAUSE");
