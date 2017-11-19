@@ -91,9 +91,9 @@ public:
 	int radius() const { return m_radius; }
 	int radius(int value) { m_radius = value; }
 
-	Circle(unsigned int _radius) : Point(), m_radius(_radius) { drawImg(); }
-	Circle(unsigned int _radius, float _hardness) : Point(_hardness), m_radius(_radius) { drawImg(); }
-	Circle(Position _position, unsigned int _radius, float _hardness) : Point(_position, _hardness), m_radius(_radius) { drawImg(); }
+	Circle(unsigned int _radius) : Point(), m_radius(_radius) {  }
+	Circle(unsigned int _radius, float _hardness) : Point(_hardness), m_radius(_radius) { }
+	Circle(Position _position, unsigned int _radius, float _hardness) : Point(_position, _hardness), m_radius(_radius) { }
 };
 
 class Line : public Point
@@ -119,8 +119,7 @@ private:
 	int m_greyLvl;
 	int m_size;
 	bool m_isGenerated;
-
-	
+	int m_tileOffset;
 
 	void AddCircle()
 	{
@@ -129,7 +128,14 @@ private:
 
 public:
 	Map() {};
-	Map(int _size, int _greylvl) :m_img(_size, _size, 1, 3, 255), m_size(_size), m_greyLvl(_greylvl) {};
+	Map(int _size, int _greylvl) :
+		m_tileOffset(((options.circleRadius * 2) + 1) * ((options.radiusVariation > 0) ?
+		(options.circleRadius * (options.radiusVariation / 100.f) + 1) : 1)),
+		m_size(_size), m_greyLvl(_greylvl)
+	{
+		CImg<unsigned char> img(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 3, 255);
+		m_img = img;
+	}
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const CImg<unsigned char>& img() const { return m_img; }
@@ -137,14 +143,22 @@ public:
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
+	
+
 	int CheckGreyLevel() const
 	{
 		int average = 0;
-		for (const auto& pixel : m_img)
-			average += (int)pixel;
+		/*for (const auto& pixel : m_img)
+			average += (int)pixel;*/
 
-
-		return (int)nearbyint(average / m_img.size());
+		for( int x = m_tileOffset + 1; x < m_size + 1 + m_tileOffset; ++x )
+			for (int y = m_tileOffset + 1; y < m_size + 1 + m_tileOffset; ++y)
+				average += (int)m_img.atXY(x,y,1,1);
+			
+		//std::cout << (int)nearbyint(average / (m_size *  m_size)) << std::endl;
+		//std::cout << m_img.mean() << std::endl;
+		return (int)nearbyint( average / (m_size *  m_size) );
+		//return m_img.mean();
 	}
 
 	void Generate(const Map* _precedingMap, const Map* _precedingToneMap )
@@ -152,22 +166,22 @@ public:
 		if(_precedingMap != nullptr)
 			for (const auto& point : _precedingMap->circles())
 			{
-				m_img.draw_circle((int)nearbyint(point->position().x * m_img.width()), (int)nearbyint(point->position().y * m_img.height()), point->radius(), color_black, 1.).blur(point->hardness());
+				m_img.draw_circle((int)nearbyint((point->position().x * m_size) + m_tileOffset), (int)nearbyint((point->position().y * m_size )+ m_tileOffset), point->radius(), color_black, 1.);
 				m_circles.insert(point);
 			}
 
 		if(_precedingToneMap != nullptr)
 			for (const auto& point : _precedingToneMap->circles())
 			{
-				m_img.draw_circle((int)nearbyint(point->position().x * m_img.width()), (int)nearbyint(point->position().y * m_img.height()), point->radius(), color_black, 1.).blur(point->hardness());
+				m_img.draw_circle((int)nearbyint((point->position().x * m_size ) + m_tileOffset ), (int)nearbyint(( point->position().y * m_size ) + m_tileOffset ), point->radius(), color_black, 1.);
 				m_circles.insert(point);
 			}
 
 		std::random_device rd;
 		std::mt19937 rng(rd());
 		std::uniform_int_distribution<int> uni(0 , m_size - 1);
-
-		while ( CheckGreyLevel() > m_greyLvl )
+		
+		while ( CheckGreyLevel() > m_greyLvl)
 		{
 			Position pointPos;
 			do
@@ -182,12 +196,67 @@ public:
 				sign = ( rand() % 2 + 1) < 1? -1 : 1;
 			short int radius( options.circleRadius + variation * sign);
 
-			std::cout << "VARIATION " << variation << " radius : " << radius  << std::endl;
 			m_circles.insert(new Circle(pointPos, radius, options.hardness));
 
-			m_img.draw_circle((int)nearbyint( pointPos.x * m_img.width() ), (int)nearbyint( pointPos.y * m_img.height() ), radius, color_black, 1.f)/*.blur( options.hardness )*/;
+			pointPos.x = nearbyint(pointPos.x * (m_size -1) ) + m_tileOffset + 1;
+			pointPos.y = nearbyint(pointPos.y * (m_size -1) ) + m_tileOffset + 1;
+			
+			m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
 
+			if ((int)pointPos.x > m_tileOffset + m_size || (int)pointPos.x <= m_tileOffset)
+				std::cout << "PointPos X : " << (int)pointPos.x << std::endl;
+			if((int)pointPos.y > m_tileOffset + m_size || (int)pointPos.y <= m_tileOffset)
+				std::cout << "PointPos Y : " << (int)pointPos.y << std::endl;
+
+			//
+			// Faire fonction pour le tile d'un point, appeler à chaque point posé, ne pas ajouter les tiles dans les points
+			//
+
+			/*const int lowerTile(m_tileOffset + radius + 1);
+			const int upperTile(m_tileOffset + m_size - radius);
+			bool isTiled(false);
+
+			if ((int)pointPos.y < lowerTile && (int)pointPos.x < lowerTile)
+			{
+				pointPos.x = (int)pointPos.x + m_size;
+				pointPos.y = (int)pointPos.y + m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+				
+			}
+			else if ((int)pointPos.y >= upperTile && (int)pointPos.x >= upperTile)
+			{
+				pointPos.x = (int)pointPos.x - m_size;
+				pointPos.y = (int)pointPos.y - m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+			}
+			else if ((int)pointPos.x < lowerTile)
+			{
+				pointPos.x = (int)pointPos.x + m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+			}
+			else if ((int)pointPos.y < lowerTile)
+			{
+				pointPos.y = (int)pointPos.y + m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+			}
+			else if ((int)pointPos.x >= upperTile)
+			{
+				pointPos.x = (int)pointPos.x - m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+			}
+			else if ((int)pointPos.y >= upperTile)
+			{
+				pointPos.y = (int)pointPos.y - m_size;
+				m_img.draw_circle((int)pointPos.x, (int)pointPos.y, radius, color_black, 1.f);
+			}*/
+
+			//if(isTiled) m_circles.insert(new Circle(pointPos, radius, options.hardness));
 		}
+
+		
+		//----- DECOMMENT WHEN TILE WORKS LEL
+		int center = m_size / 2;
+		m_img.crop(m_tileOffset+1,m_tileOffset+1, m_tileOffset + m_size, m_tileOffset + m_size);
 
 		SaveMap();
 
@@ -267,7 +336,7 @@ int main()
 	std::vector<CImgDisplay> displays;
 
 	std::vector<Tone> tones;
-
+	 
 	for ( int indice = 0, greyValue = options.maxGrey; indice < (int)options.nbOfGreys; ++indice, greyValue -= ( ( options.maxGrey - options.minGrey ) / ( options.nbOfGreys - 1 ) ) )
 	{
 		std::cout << "tone grey value " << greyValue << std::endl;
