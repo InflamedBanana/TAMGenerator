@@ -20,6 +20,7 @@ struct tamOptions
 	unsigned int minGrey;
 	unsigned int maxGrey;
 	unsigned int nbOfGreys;
+	float hardness;
 	int circleRadius;
 	int radiusVariation;
 
