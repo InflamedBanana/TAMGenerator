@@ -7,7 +7,14 @@
 #include <unordered_set>
 #include <random>
 
+#include "dds.h"
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+
 using namespace cimg_library;
+
+namespace dx = DirectX;
 
 const unsigned char color_black[] = { 0,0,0 };
 const unsigned char color_white[] = { 255,255,255 };
@@ -136,7 +143,7 @@ public:
 		(options.circleRadius * (options.radiusVariation / 100.f) + 1) : 1)),
 		m_size(_size), m_greyLvl(_greylvl)
 	{
-		CImg<unsigned char> img(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255);
+		CImg<unsigned char> img(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 3, 255);
 		m_img = img;
 	}
 
@@ -300,23 +307,23 @@ int main()
 {
 	srand(time(0));
 
-	std::cout << "Nb of greys you want :" << std::endl;
+	/*std::cout << "Nb of greys you want :" << std::endl;
 	do { std::cin >> options.nbOfGreys; } while (options.nbOfGreys < 2 || options.nbOfGreys > 10);
 	std::cout << "min grey value :" << std::endl;
 	do { std::cin >> options.minGrey; } while (options.minGrey < 0 || options.minGrey > 255);
 	std::cout << "max grey value :" << std::endl;
 	do { std::cin >> options.maxGrey; } while (options.maxGrey < options.minGrey || options.maxGrey > 255);
 	std::cout << "max map size :" << std::endl;
-	do { std::cin >> options.maxMapSize; } while (options.maxMapSize < 16 || !(options.maxMapSize & (options.maxMapSize - 1)) == 0);
+	do { std::cin >> options.maxMapSize; } while (options.maxMapSize < 16 || !(options.maxMapSize & (options.maxMapSize - 1)) == 0);*/
 	std::cout << "Circle Radius :" << std::endl;
 	do { std::cin >> options.circleRadius; } while (options.circleRadius < 1);
 	std::cout << "Radius Variation ( in % ):" << std::endl;
 	std::cin >> options.radiusVariation;
 	options.hardness = 0;
-	std::vector<CImgDisplay> displays;
+	/*std::vector<CImgDisplay> displays;
 
 	std::vector<Tone> tones;
-	 
+
 	for ( int indice = 0, greyValue = options.maxGrey; indice < (int)options.nbOfGreys; ++indice, greyValue -= ( ( options.maxGrey - options.minGrey ) / ( options.nbOfGreys - 1 ) ) )
 	{
 		std::cout << "tone grey value " << greyValue << std::endl;
@@ -341,7 +348,75 @@ int main()
 			CImgDisplay display( 256, 256, mapName.c_str(), 0 );
 			displays.push_back( display );
 			map.img().display( displays.back() );
-		}
+		}*/
+
+	/*Tone tone(180);
+	tone.Generate(16, nullptr);*/
+
+	CImg<unsigned char>img(16, 16, 1, 3, 255);
+	//CImg<unsigned char>img(tone.maps()[0].img());
+	//img.draw_circle(16, 16, 3, color_black, 1.f);
+	/*CImg<unsigned char>img;
+	img.load("test.bmp");*/
+	//img.draw_fill(8, 8, color_black, 1.f, 200.f, true);
+	
+	unsigned char* data = img.data();
+
+	for (int i = 0; i < img.size(); ++i)
+	{
+		/*if(i % 4 != 0)*/
+		data[i] = 0x000022;
+	}
+
+	std::ofstream file("wesh.dds", std::ios::binary);
+
+	//DDS_HEADER wesh;
+
+	dx::DDS_MAGIC;
+	dx::DDS_HEADER header;
+	header.size = sizeof(dx::DDS_HEADER);
+	header.flags = 0x00001007 /*DDS_HEADER_FLAGS_TEXTURE*/ | 0x00000008 /*DDS_HEADER_HEADER_FLAGS_PITCH*/;
+	header.height = img.height();
+	header.width = img.width();
+	header.depth = img.depth();
+	header.mipMapCount = 0;
+	header.reserved1[0] = 
+		header.reserved1[1] =
+		header.reserved1[2] =
+		header.reserved1[3] =
+		header.reserved1[4] =
+		header.reserved1[5] =
+		header.reserved1[6] =
+		header.reserved1[7] =
+		header.reserved1[8] =
+		header.reserved1[9] =
+		header.reserved1[10] = 0;
+	header.caps = DDS_SURFACE_FLAGS_TEXTURE;
+	header.caps2 = 0x000000ff;
+	header.caps3 = 0;
+	header.caps4 = 0;
+	header.reserved2 = 0;
+	//pitch
+	//header.pitchOrLinearSize = (img.width() * 24 + 7) / 8;
+	header.pitchOrLinearSize = std::max(1, ((img.width() + 3) / 4)) * 8;
+	dx::DDS_PIXELFORMAT pxformat(dx::DDSPF_DXT1);
+	//pxformat.size = 32;
+	//pxformat.flags = 0x00000040 | 0x00000004;
+	//pxformat.fourCC = dx::DDSPF_DXT1;
+	/*pxformat.RGBBitCount = 0x00000040;
+	pxformat.RBitMask = 0x0000ff;
+	pxformat.GBitMask = 0x00ff00;
+	pxformat.BBitMask = 0xff0000;*/
+
+	header.ddspf = pxformat;
+	
+
+	file.write((char*)&dx::DDS_MAGIC, sizeof(dx::DDS_MAGIC));
+	file.write((char*)&header, sizeof(header));
+	file << (char*)img.data() << std::endl;
+	//file.write((char*)img.data(), sizeof(*img.data()));
+	//file << img.data();
+	file.close();
 
 	std::cout << "FINISHED" << std::endl;
 	system("PAUSE");
