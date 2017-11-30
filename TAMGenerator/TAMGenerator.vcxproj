@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{58B96C68-B6CE-4AF4-9525-B67161935449}</ProjectGuid>
     <RootNamespace>TAMGenerator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -117,6 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dds.h" />
+    <ClInclude Include="DDSSerializer.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Tam.h" />
     <ClInclude Include="TamOptions.h" />

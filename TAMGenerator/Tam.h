@@ -73,6 +73,7 @@ private:
 	
 public:
 	Map(int _size, int _greylvl);
+	//Map(const Map& _map);
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const ci::CImg<unsigned char>& img() const { return m_img; }
@@ -81,6 +82,7 @@ public:
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
+	void Resize(const float _resizeValue);
 	void Generate(const Map* _precedingMap, const Map* _precedingToneMap);
 	void SaveMap();
 };
@@ -90,6 +92,8 @@ class Tone
 private:
 	std::vector<Map> m_maps;
 	int m_greylvl;
+
+	void ComputeLowerMipMaps();
 
 public:
 	Tone(int _greyLvl);

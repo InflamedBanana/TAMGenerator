@@ -38,5 +38,8 @@
     <ClInclude Include="TamOptions.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="DDSSerializer.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

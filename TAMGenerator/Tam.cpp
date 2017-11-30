@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "TamOptions.h"
+#include <cmath>
 
 using namespace std;
 
@@ -25,6 +26,7 @@ Map::Map(int _size, int _greylvl ) :
 	ci::CImg<unsigned char> img(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255);
 	m_img = img;
 }
+//Map::Map(const Map& _map) :m_size(_map.size()),m_greyLvl(_map.greyLvl()), m_img(_map.img()){}
 
 
 void Map::TilePoint(const Position& _pos, const int _radius)
@@ -74,10 +76,10 @@ void Map::Generate(const Map* _precedingMap, const Map* _precedingToneMap)
 {
 	if (_precedingMap != nullptr)
 		m_circles.insert(_precedingMap->circles().begin(), _precedingMap->circles().end());
-
+	
 	if (_precedingToneMap != nullptr)
 		m_circles.insert(_precedingToneMap->circles().begin(), _precedingToneMap->circles().end());
-
+	
 	for (const auto& point : m_circles)
 	{
 		Position pos(point->position());
@@ -97,7 +99,7 @@ void Map::Generate(const Map* _precedingMap, const Map* _precedingToneMap)
 		{
 			pointPos.x = (float)(uni(rng));
 			pointPos.y = (float)(uni(rng));
-		} while ((int)m_img.atXY((int)pointPos.x + m_tileOffset, (int)pointPos.y + m_tileOffset, 0, 0) < 240);
+		} while ( (int)m_img.atXY( (int)pointPos.x + m_tileOffset, (int)pointPos.y + m_tileOffset, 0, 0) < 240 );
 
 		short int sign(1);
 		short int variation(rand() % ((int)nearbyint(options::circleRadius * (options::radiusVariation / 100.f) + 1)));
@@ -120,10 +122,16 @@ void Map::Generate(const Map* _precedingMap, const Map* _precedingToneMap)
 	int center = m_size / 2;
 	m_img.crop(m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size);
 
-	//SaveMap();
+	SaveMap();
 
 	cout << "Map " << m_size << " tone " << m_greyLvl << " generated." << endl;
 	m_isGenerated = true;
+}
+
+void Map::Resize(const float _resizeValue)
+{
+	m_img.resize(_resizeValue * -100, _resizeValue * -100, -100,-100,3);
+	m_size *= _resizeValue;
 }
 
 void Map::SaveMap()
@@ -143,20 +151,23 @@ Tone::Tone(int _greyLvl) : m_greylvl(_greyLvl) {};
 
 void Tone::Generate(const int _maxMapSize, const Tone* _precedingTone)
 {
-	for (int size = 16; size < _maxMapSize * 2; size *= 2)
+	for (int size = 1; size < _maxMapSize * 2; size *= 2)
 	{
 		Map newMap(size, m_greylvl);
 		m_maps.push_back(newMap);
 	}
 
 	int i(0);
-	for (vector<Map>::iterator it = m_maps.begin(); it != m_maps.end(); ++it, ++i)
+	for (vector<Map>::iterator it = m_maps.begin() + 4; it != m_maps.end(); ++it, ++i)
 	{
-		if (it == m_maps.begin())
+		if ( i == 0 )
 			it->Generate(nullptr, (_precedingTone == nullptr) ? nullptr : &_precedingTone->maps()[i]);
 		else
 			it->Generate(&(*(it - 1)), (_precedingTone == nullptr) ? nullptr : &_precedingTone->maps()[i]);
 	}
+
+	ComputeLowerMipMaps();
+
 	cout << "tone " << m_greylvl << " generated with " << m_maps.size() << " maps." << endl;
 }
 
@@ -164,4 +175,16 @@ void Tone::Save()
 {
 	for (auto& map : m_maps)
 		map.SaveMap();
+}
+
+void Tone::ComputeLowerMipMaps()
+{
+	for (int i = 3; i >= 0; i --)
+	{
+		Map lower(m_maps[4]);
+
+		lower.Resize(1/pow(2,4-i));
+		lower.SaveMap();
+	}
+	
 }

@@ -9,11 +9,11 @@ private:
 	TamOptions();
 
 public:
-	static unsigned int maxMapSize;
+	static /*unsigned */int maxMapSize;
 	static unsigned char greyLvl;
-	static unsigned int minGrey;
-	static unsigned int maxGrey;
-	static unsigned int nbOfGreys;
+	static /*unsigned*/ int minGrey;
+	//static unsigned int maxGrey;
+	static /*unsigned*/ int nbOfGreys;
 	static int circleRadius;
 	static int radiusVariation;
 
