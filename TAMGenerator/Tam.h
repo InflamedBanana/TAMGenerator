@@ -61,8 +61,9 @@ class Map
 {
 private:
 	Map();
+	
 	std::unordered_set<Circle*> m_circles;
-	ci::CImg<unsigned char> m_img;
+	ci::CImg<unsigned char>* m_img;
 	int m_greyLvl;
 	int m_size;
 	bool m_isGenerated;
@@ -72,18 +73,19 @@ private:
 	int CheckGreyLevel() const;
 	
 public:
+	~Map();
 	Map(int _size, int _greylvl);
 	//Map(const Map& _map);
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
-	const ci::CImg<unsigned char>& img() const { return m_img; }
-	void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
+	const ci::CImg<unsigned char>& img() const { return *m_img; }
+	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
 	
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
-	void Resize(const float _resizeValue);
+	void Resize(const float _resizeValue, const ci::CImg<unsigned char>& _higherImg);
 	void Generate(const Map* _precedingMap, const Map* _precedingToneMap);
 	void SaveMap();
 };
