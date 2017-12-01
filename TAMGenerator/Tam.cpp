@@ -26,7 +26,8 @@ Map::Map(int _size, int _greylvl ) :
 	ci::CImg<unsigned char> img(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255);
 	m_img = img;
 }
-//Map::Map(const Map& _map) :m_size(_map.size()),m_greyLvl(_map.greyLvl()), m_img(_map.img()){}
+//Map::Map(const Map& _map) :m_size(_map.size()),m_greyLvl(_map.greyLvl()),
+//m_img(_map.img(),false), m_isGenerated(_map.m_isGenerated){}
 
 
 void Map::TilePoint(const Position& _pos, const int _radius)
@@ -181,9 +182,12 @@ void Tone::ComputeLowerMipMaps()
 {
 	for (int i = 3; i >= 0; i --)
 	{
-		Map lower(m_maps[4]);
-
-		lower.Resize(1/pow(2,4-i));
+		ci::CImg<unsigned char> img(m_maps[4].img(), false);
+		//Map lower(m_maps[4]);
+		int mapSize(m_maps[4].size() * 1 / pow(2, 4 - i));
+		Map lower(mapSize, m_greylvl);
+		//lower.img(img);
+		//lower.Resize(1/pow(2,4-i));
 		lower.SaveMap();
 	}
 	

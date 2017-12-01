@@ -51,6 +51,27 @@ int main()
 
 	//CImg<unsigned char>redimg(tone.maps()[0].img());
 
+	for (int i = 0; i < tones.size(); ++i)
+		cout << tones[i].maps()[0].img().size() << endl;
+
+	int mipMapSize(0);
+
+	for (int i = 0; i < tones[0].maps().size() - 1; i++)
+	{
+		if (tones[0].maps()[i].size() == 1)
+			mipMapSize += 4;
+		else
+			mipMapSize += (int)pow(tones[0].maps()[i].size(), 2) * 3;
+
+		cout << "map size " << tones[0].maps()[i].size() << " data size : " << tones[0].maps()[i].img().size() << "  nb of channel " << tones[0].maps()[i].img().spectrum() << endl;
+	}
+
+
+	//for (int i = 0; i < tones[2].maps()[0].img().size(); ++i)
+	//	cout << (int)*(tones[2].maps()[0].img().data() + i) << endl;
+	
+#ifdef SAVE_DDS
+
 	//
 	// HEADER
 	//
@@ -99,6 +120,8 @@ int main()
 				mipMapSize += 4;
 			else
 				mipMapSize += (int)pow(tones[0].maps()[i].size(), 2) * 3;
+
+			cout << "map size " << tones[0].maps()[i].size()  << " data size : " << tones[0].maps()[i].img().size() << endl;
 		}
 
 		cout << "mip map size " << mipMapSize << endl;
@@ -108,9 +131,9 @@ int main()
 		int mipMapLevel( bTone.maps().size() - 2);
 		int mipMapPixelDataCount( 0 );
 
-		for (int j = 0; j < mipMapSize; ++j , ++mipMapPixelDataCount)
+		for (int j = 0; j < mipMapSize; ++j /*, ++mipMapPixelDataCount*/)
 		{
-			if (mipMapPixelDataCount >= bTone.maps()[mipMapLevel].img().size())
+			/*if (mipMapPixelDataCount >= bTone.maps()[mipMapLevel].img().size())
 			{
 				mipMapPixelDataCount = 0;
 				mipMapLevel--;
@@ -119,11 +142,14 @@ int main()
 					cout << "MIP MAP LEVEL GOES UNDER 0" << endl;
 					break;
 				}
-			}
-			cout << " j " << j << endl;
-			mipMapsDatas[j] = bTone.maps()[mipMapLevel].img().data()[mipMapPixelDataCount];
+			}*/
+			//cout << " j " << j << endl;
+		/*	mipMapsDatas[j] = bTone.maps()[mipMapLevel].img().data()[mipMapPixelDataCount];
 			mipMapsDatas[++j] = gTone.maps()[mipMapLevel].img().data()[++mipMapPixelDataCount];
-			mipMapsDatas[++j] = rTone.maps()[mipMapLevel].img().data()[++mipMapPixelDataCount];
+			mipMapsDatas[++j] = rTone.maps()[mipMapLevel].img().data()[++mipMapPixelDataCount];*/
+			mipMapsDatas[j] = (rand() % 230 )+ 15;
+			mipMapsDatas[++j] = (rand() % 230) + 15;
+			mipMapsDatas[++j] = (rand() % 230) + 15;
 			//cout << j / mipMapSize << " %" << endl;
 		}
 
@@ -146,7 +172,7 @@ int main()
 		//save img
 		//repeat
 	}
-
+#endif // SAVE_DDS
 	cout << "FINISHED" << endl;
 	system("PAUSE");
 
