@@ -60,15 +60,16 @@ int main()
 					| 0x00020000 /*MIP MAP COUNT*/;
 	header.height = options::maxMapSize;
 	header.width = options::maxMapSize;
-	header.pitchOrLinearSize = ((options::maxMapSize) * (sizeof(unsigned char) * 3) + 7) / 8;
+	header.pitchOrLinearSize = (int)(((options::maxMapSize) * 24/*(sizeof(unsigned char) * 3*)*/ + 7) / 8);
 	//header.caps = DDS_SURFACE_FLAGS_TEXTURE;
 	header.caps = DDS_SURFACE_FLAGS_TEXTURE | DDS_SURFACE_FLAGS_MIPMAP;
-	header.mipMapCount = (int)log2(options::maxMapSize - 1);
+	header.mipMapCount = (int)log2(options::maxMapSize) + 1;
 	header.caps2 = 0;
 	header.ddspf = dx::DDSPF_R8G8B8;
 	//
 	// HEADER
 	//
+	std::cout << "img pitch " << header.pitchOrLinearSize << endl;
 
 	for (int e = 0; e < tones.size(); e+=3)
 	{
@@ -90,15 +91,15 @@ int main()
 			finalImage.data()[++i /*+ 3*/] = rTone.maps().back().img().data()[channelIndice + 2];
 		}
 
-		int mipMapSize(3);
+		int mipMapSize(0);
 
 		for (int i = 0; i < tones[0].maps().size() - 1; i++)
 		{
-			mipMapSize += tones[0].maps()[i].img().size() * tones.size();
+			if(tones[0].maps()[i].size() == 1)
+				mipMapSize += 4;
+			else
+				mipMapSize += (int)pow(tones[0].maps()[i].size(), 2) * 3;
 		}
-
-		/*for (int size = 1; size < options::maxMapSize / 2; size *= 2)
-			mipMapSize += (int)(pow(2, size) * pow(2, size) * 3);*/
 
 		cout << "mip map size " << mipMapSize << endl;
 
@@ -119,7 +120,7 @@ int main()
 					break;
 				}
 			}
-			
+			cout << " j " << j << endl;
 			mipMapsDatas[j] = bTone.maps()[mipMapLevel].img().data()[mipMapPixelDataCount];
 			mipMapsDatas[++j] = gTone.maps()[mipMapLevel].img().data()[++mipMapPixelDataCount];
 			mipMapsDatas[++j] = rTone.maps()[mipMapLevel].img().data()[++mipMapPixelDataCount];
@@ -136,7 +137,7 @@ int main()
 
 		file.write((char*)&dx::DDS_MAGIC, sizeof(dx::DDS_MAGIC));
 		file.write((char*)&header, sizeof(header));
-		file << finalImage.data() /*<< endl*/;
+		file << finalImage.data() << endl;
 		file << mipMapsDatas << endl;
 		file.close();
 
@@ -145,36 +146,6 @@ int main()
 		//save img
 		//repeat
 	}
-
-	/*for (const auto& tone : tones)
-	{*/
-		//ci::CImg<unsigned char>channelImage(tone.maps().back().img());
-
-	//}
-
-	//ci::CImg<unsigned char>img( 16, 16, 1, 3, 255 );
-
-	/*for (int i = 0; i < img.size(); i += 3)
-	{
-		img.data()[i] = redimg.data()[i / 3];
-	}*/
-
-	//ofstream file("wesh.dds", ios::binary);
-
-	//dx::DDS_HEADER header;
-	//header.size = sizeof(dx::DDS_HEADER);
-	//header.flags = 0x00001007 /*DDS_HEADER_FLAGS_TEXTURE*/ | 0x00000008 /*DDS_HEADER_HEADER_FLAGS_PITCH*/;
-	//header.height = img.height();
-	//header.width = img.width();
-	//header.pitchOrLinearSize = (img.width() * (sizeof(unsigned char) * 3) + 7) / 8;
-	//header.caps = DDS_SURFACE_FLAGS_TEXTURE;
-	//header.caps2 = 0;
-	//header.ddspf = dx::DDSPF_R8G8B8;
-
-	//file.write((char*)&dx::DDS_MAGIC, sizeof(dx::DDS_MAGIC));
-	//file.write((char*)&header, sizeof(header));
-	//file << img.data() << endl;
-	//file.close();
 
 	cout << "FINISHED" << endl;
 	system("PAUSE");
