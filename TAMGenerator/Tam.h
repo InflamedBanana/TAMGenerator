@@ -22,14 +22,14 @@ protected:
 
 public:
 	Point();
-	Point(Position _position);
+	Point( Position _position );
 	~Point();
 
 	Position position() const { return m_position; }
-	
-	bool operator==(Point& b)
+
+	bool operator==( Point& b )
 	{
-		return (this->m_position == b.m_position);
+		return ( this->m_position == b.m_position );
 	}
 };
 
@@ -41,10 +41,10 @@ private:
 
 public:
 	int radius() const { return m_radius; }
-	int radius(int value) { m_radius = value; }
+	int radius( int value ) { m_radius = value; }
 
-	Circle(unsigned int _radius);
-	Circle(Position _position, unsigned int _radius);
+	Circle( unsigned int _radius );
+	Circle( Position _position, unsigned int _radius );
 };
 
 class Line : public Point
@@ -54,14 +54,14 @@ private:
 
 public:
 	unsigned int length() const { return m_length; }
-	unsigned int length(unsigned int value) { m_length = value; }
+	unsigned int length( unsigned int value ) { m_length = value; }
 };
 
 class Map
 {
 private:
 	Map();
-	
+
 	std::unordered_set<Circle*> m_circles;
 	ci::CImg<unsigned char>* m_img;
 	int m_greyLvl;
@@ -69,24 +69,24 @@ private:
 	bool m_isGenerated;
 	int m_tileOffset;
 
-	void TilePoint(const Position& _pos, const int _radius);
+	void TilePoint( const Position& _pos, const int _radius );
 	int CheckGreyLevel() const;
-	
+
 public:
 	~Map();
-	Map(int _size, int _greylvl);
+	Map( int _size, int _greylvl );
 	//Map(const Map& _map);
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const ci::CImg<unsigned char>& img() const { return *m_img; }
 	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
-	
+
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
-	void Resize(const float _resizeValue, const ci::CImg<unsigned char>& _higherImg);
-	void Generate(const Map* _precedingMap, const Map* _precedingToneMap);
+	void Resize( const float _resizeValue, const ci::CImg<unsigned char>& _higherImg );
+	void Generate( const Map* _precedingMap, const Map* _precedingToneMap );
 	void SaveMap();
 };
 
@@ -99,11 +99,11 @@ private:
 	void ComputeLowerMipMaps();
 
 public:
-	Tone(int _greyLvl);
+	Tone( int _greyLvl );
 	std::vector<Map> maps() const { return m_maps; }
 	int greylvl() const { return m_greylvl; }
 
-	void Generate(const int _maxMapSize, const Tone* _precedingTone = nullptr);
+	void Generate( const int _maxMapSize, const Tone* _precedingTone = nullptr );
 
 	void Save();
 };
