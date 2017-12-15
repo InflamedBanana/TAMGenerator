@@ -3,11 +3,11 @@
 
 int TamOptions::circleRadius = 0;
 
-/*unsigned*/ int TamOptions::maxMapSize = 0;
-unsigned char TamOptions::greyLvl = 0;
-/*unsigned*/ int TamOptions::minGrey = 0;
-//unsigned int TamOptions::maxGrey = 0;
-/*unsigned*/ int TamOptions::nbOfGreys = 0;
+int TamOptions::maxMapSize = 0;
+char TamOptions::greyLvl = 0;
+int TamOptions::minGrey = 0;
+int TamOptions::maxGrey = 0;
+int TamOptions::nbOfGreys = 0;
 int TamOptions::radiusVariation = 0;
 
 void TamOptions::SetOptions()

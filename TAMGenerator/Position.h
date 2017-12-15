@@ -7,22 +7,23 @@
 
 struct Position
 {
-	float x;
-	float y;
+	float x = .0f;
+	float y = .0f;
 
 	Position() {};
 	Position(float _x, float _y) : x(_x), y(_y) {};
 	Position(const Position& _pos) : x(_pos.x), y(_pos.y) {};
 
-	bool operator==(Position& b) { return (this->x == b.x && this->y == b.y); }
+	bool operator==(const Position& b) { return (this->x == b.x && this->y == b.y); }
 
-	Position Normalized(const Position& _pos, const int _max)
+	Position Normalized(const Position& _pos, const float _max)
 	{
 		Position p(_pos);
 		p.Normalize(_max);
 		return p;
 	}
-	void Normalize(const int _max) { x = x / (float)(_max - 1.f); y = y / (float)(_max - 1.f); }
+	void Normalize(const float _max) { x = x / (_max - 1.f); y = y / (_max - 1.f); }
+
 	void ToSize(const int _size, const int _offset = -1.f)
 	{
 		x = nearbyint(x * (_size - 1)) + _offset;
@@ -35,6 +36,9 @@ struct Position
 		p.ToSize(_size, _offset);
 		return p;
 	}
+
+	int xInt() { return static_cast<int>(x); }
+	int yInt() { return static_cast<int>(y); }
 };
 
 #define POS_X0Y1 Position{0,1}

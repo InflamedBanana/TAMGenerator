@@ -17,53 +17,49 @@ Circle::Circle( Position _position, unsigned int _radius )
 	: Point( _position ), m_radius( _radius ) {}
 
 
-Map::Map() : m_size( 1 ), m_greyLvl( 0 ) { m_img = new ci::CImg<unsigned char>( 1, 1, 1, 1, 255 ); }
+Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated(false), m_img( make_shared<ci::CImg<unsigned char>>(1, 1, 1, 1, 255)) {}
 Map::Map( int _size, int _greylvl ) :
 	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ?
-	( options::circleRadius* ( options::radiusVariation / 100.f ) + 1 ) : 1 ) ),
-	m_size( _size ), m_greyLvl( _greylvl )
-{
-	m_img = new ci::CImg<unsigned char>( _size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255 );
-}
+	( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
+	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated(false),
+	m_img( make_shared<ci::CImg<unsigned char>>(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255) )
+{}
+
 Map::~Map()
-{
-	/*if (m_img != nullptr)
-		delete m_img;
-		CA PUE VA FALLOIR LE FAIRE
-	m_img = nullptr;*/
-}
+{}
 
 
 void Map::TilePoint( const Position& _pos, const int _radius )
 {
 	const int lowerTile( m_tileOffset + _radius + 1 );
 	const int upperTile( m_tileOffset + m_size - _radius - 1 );
-	bool isTiled( false );
 
-	if( (int)_pos.x >= lowerTile && (int)_pos.y >= lowerTile &&
-		(int)_pos.x <= upperTile && (int)_pos.y <= lowerTile )
+	int xPos(_pos.x), yPos(_pos.y); //declare them as parameters ?
+
+	if( xPos >= lowerTile && yPos >= lowerTile &&
+		xPos <= upperTile && yPos <= lowerTile )
 		return;
 
 	Position tiledPos( 0.f, 0.f );
 
-	if( (int)_pos.x < lowerTile )
-		m_img->draw_circle( (int)_pos.x + m_size, (int)_pos.y, _radius, color_black, 1.f );
-	else if( (int)_pos.x > upperTile )
-		m_img->draw_circle( (int)_pos.x - m_size, (int)_pos.y, _radius, color_black, 1.f );
+	if( xPos < lowerTile )
+		m_img->draw_circle( xPos + m_size, yPos, _radius, color_black, 1.f );
+	else if( xPos > upperTile )
+		m_img->draw_circle( xPos - m_size, yPos, _radius, color_black, 1.f );
 
-	if( (int)_pos.y < lowerTile )
-		m_img->draw_circle( (int)_pos.x, (int)_pos.y + m_size, _radius, color_black, 1.f );
-	else if( (int)_pos.y > upperTile )
-		m_img->draw_circle( (int)_pos.x, (int)_pos.y - m_size, _radius, color_black, 1.f );
+	if( yPos < lowerTile )
+		m_img->draw_circle( xPos, yPos + m_size, _radius, color_black, 1.f );
+	else if( yPos > upperTile )
+		m_img->draw_circle( xPos, yPos - m_size, _radius, color_black, 1.f );
 
-	if( (int)_pos.x < lowerTile && (int)_pos.y < lowerTile )
-		m_img->draw_circle( (int)_pos.x + m_size, (int)_pos.y + m_size, _radius, color_black, 1.f );
-	else if( (int)_pos.x > upperTile && (int)_pos.y < lowerTile )
-		m_img->draw_circle( (int)_pos.x - m_size, (int)_pos.y + m_size, _radius, color_black, 1.f );
-	else if( (int)_pos.x < lowerTile && (int)_pos.y > upperTile )
-		m_img->draw_circle( (int)_pos.x + m_size, (int)_pos.y - m_size, _radius, color_black, 1.f );
-	else if( (int)_pos.x > upperTile && (int)_pos.y > upperTile )
-		m_img->draw_circle( (int)_pos.x - m_size, (int)_pos.y - m_size, _radius, color_black, 1.f );
+	if( xPos < lowerTile && yPos < lowerTile )
+		m_img->draw_circle( xPos + m_size, yPos + m_size, _radius, color_black, 1.f );
+	else if( xPos > upperTile && yPos < lowerTile )
+		m_img->draw_circle( xPos - m_size, yPos + m_size, _radius, color_black, 1.f );
+	else if( xPos < lowerTile && yPos > upperTile )
+		m_img->draw_circle( xPos + m_size, yPos - m_size, _radius, color_black, 1.f );
+	else if( xPos > upperTile && yPos > upperTile )
+		m_img->draw_circle( xPos - m_size, yPos - m_size, _radius, color_black, 1.f );
 }
 
 int Map::CheckGreyLevel() const
@@ -74,7 +70,7 @@ int Map::CheckGreyLevel() const
 		for( int y = m_tileOffset + 1; y < m_size + 1 + m_tileOffset; ++y )
 			average += (int)m_img->atXY( x, y, 0, 0 );
 
-	return (int)nearbyint( average / ( m_size *  m_size ) );
+	return static_cast<int>( nearbyint( average / ( m_size *  m_size ) ) );
 }
 
 void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
@@ -89,7 +85,7 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 	{
 		Position pos( point->position() );
 		pos.ToSize( m_size, m_tileOffset );
-		m_img->draw_circle( (int)pos.x, (int)pos.y, point->radius(), color_black, 1.f );
+		m_img->draw_circle( pos.x, pos.y, point->radius(), color_black, 1.f );
 		TilePoint( pos, point->radius() );
 	}
 
@@ -102,19 +98,19 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 		Position pointPos;
 		do
 		{
-			pointPos.x = (float)( uni( rng ) );
-			pointPos.y = (float)( uni( rng ) );
-		} while( (int)m_img->atXY( (int)pointPos.x + m_tileOffset, (int)pointPos.y + m_tileOffset, 0, 0 ) < 240 );
+			pointPos.x = uni( rng );
+			pointPos.y = uni( rng );
+		} while( m_img->atXY( pointPos.x + m_tileOffset, pointPos.y + m_tileOffset, 0, 0 ) < 240 );
 
 		short int sign( 1 );
-		short int variation( rand() % ( (int)nearbyint( options::circleRadius * ( options::radiusVariation / 100.f ) + 1 ) ) );
+		const short int variation( rand() % ( static_cast<int>(nearbyint( options::circleRadius * ( options::radiusVariation / 100.f ) + 1 ) )) );
 
 		if( options::radiusVariation > 0 )
 			sign = ( rand() % 2 + 1 ) < 1 ? -1 : 1;
 
 		short int radius( options::circleRadius + variation * sign );
 
-		m_img->draw_circle( (int)pointPos.x + m_tileOffset, (int)pointPos.y + m_tileOffset, radius, color_black, 1.f );
+		m_img->draw_circle( pointPos.xInt() + m_tileOffset, pointPos.yInt() + m_tileOffset, radius, color_black, 1.f );
 
 		Position tilePos( pointPos.x + m_tileOffset, pointPos.y + m_tileOffset );
 		TilePoint( tilePos, radius );
@@ -124,7 +120,7 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 		m_circles.insert( new Circle( pointPos, radius ) );
 	}
 
-	int center = m_size / 2;
+	//const int center = m_size / 2;
 	m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
 
 	SaveMap();
@@ -132,28 +128,25 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 	m_isGenerated = true;
 }
 
-void Map::Resize( const float _resizeValue, const ci::CImg<unsigned char>& _higherImg )
+void Map::Resize( const float _resizeValue, const Map& _higherMap )
 {
-	int newMapSize( m_size * _resizeValue );
+	int newMapSize( static_cast<int>(m_size * _resizeValue ));
 
-
-	ci::CImg<unsigned char>* lowerImg = new ci::CImg<unsigned char>();
+	CImgUniquePtr lowerImg(make_shared<ci::CImg<unsigned char>>());
 	lowerImg->assign( newMapSize, newMapSize, 1, 1 );
 
-
-	ci::CImg<unsigned char> higherImg( _higherImg.get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ) , false );
+	ci::CImg<unsigned char> higherImg( _higherMap.img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ) , false );
 
 	for( int x = 0; x < newMapSize; ++x )
 		for( int y = 0; y < newMapSize; ++y )
-		{
 			( *lowerImg )( x, y, 0, 0 ) = higherImg( x, y, 0, 0 );
-		}
-
+	
 	std::cout << "1 : Map size : " << m_size << " | lower img size : " << lowerImg->width() << " | lower img data size : " << lowerImg->size() << endl;
 
-	m_img = lowerImg;
+	m_img = /*move(*/lowerImg/*)*/;
 	m_size *= _resizeValue;
 	std::cout << "2 : Map size : " << m_size << " | lower img size : " << lowerImg->width() << " | lower img data size : " << lowerImg->size() << endl;
+	std::cout << "2 : Map size : " << m_size << " | img size : " << lowerImg->width() << " | img data size : " << lowerImg->size() << endl;
 }
 
 void Map::SaveMap()
@@ -205,9 +198,9 @@ void Tone::ComputeLowerMipMaps()
 	{
 		Map lower( m_maps[ 4 ].size(), m_greylvl );
 
-		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ].img() );
+		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
 
-		std::cout << "3 : Map size : " << m_maps[ i ].size() << " | img data size : " << m_maps[ i ].img().size() << endl;
+		std::cout << "3 : Map size : " << m_maps[ i ].size() << " | img data size : " << m_maps[ i ].img()->size() << endl;
 
 		lower.SaveMap();
 	}

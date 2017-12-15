@@ -17,13 +17,13 @@ namespace dx = DirectX;
 
 int main()
 {
-	srand((unsigned int)time(0));
+	srand(time(0));
 
 	options::SetOptions();
 
 	vector<Tone> tones;
 
-	for ( int indice = 0, greyValue = 255; indice < (int)options::nbOfGreys; ++indice, greyValue -= ( ( 255 - options::minGrey ) / (options::nbOfGreys - 1 ) ) )
+	for ( int indice = 0, greyValue = 255; indice <  options::nbOfGreys; ++indice, greyValue -= ( ( 255 - options::minGrey ) / (options::nbOfGreys - 1 ) ) )
 	{
 		Tone tone(greyValue);
 		tones.push_back(tone);
@@ -40,7 +40,7 @@ int main()
 	//CImg<unsigned char>redimg(tone.maps()[0].img());
 
 	for (int i = 0; i < tones.size(); ++i)
-		cout << tones[i].maps()[0].img().size() << endl;
+		cout << tones[i].maps()[0].img()->size() << endl;
 
 	//int mipMapSize(0);
 
@@ -58,7 +58,7 @@ int main()
 	//for (int i = 0; i < tones[2].maps()[0].img().size(); ++i)
 		//cout << (int)*(tones[2].maps()[0].img().data() + i) << endl;
 
-//#define SAVE_DDS
+#define SAVE_DDS
 
 #ifdef SAVE_DDS
 
@@ -85,16 +85,19 @@ int main()
 	{
 		ci::CImg<unsigned char>finalImage(options::maxMapSize, options::maxMapSize, 1, 3, 255);
 
-		const ci::CImg<unsigned char>& blueImg = tones[e].maps().back().img();
-		const ci::CImg<unsigned char>& greenImg = tones[e + 1].maps().back().img();
-		const ci::CImg<unsigned char>& redImg = tones[e + 2].maps().back().img();
+		const CImgUniquePtr& blueImg = tones[e].maps().back().img();
+		const CImgUniquePtr& greenImg = tones[e + 1].maps().back().img();
+		const CImgUniquePtr& redImg = tones[e + 2].maps().back().img();
 
 		for (int i = 0; i < finalImage.size(); ++i)
 		{
 			int channelIndice(i / 3);
-			finalImage.data()[i] = blueImg.data()[channelIndice];
-			finalImage.data()[++i /*+ 1*/] = greenImg.data()[channelIndice + 1];
-			finalImage.data()[++i /*+ 3*/] = redImg.data()[channelIndice + 2];
+			//finalImage.data()[i] = blueImg->data()[channelIndice];
+			//finalImage.data()[++i /*+ 1*/] = greenImg->data()[channelIndice + 1];
+			//finalImage.data()[++i /*+ 3*/] = redImg->data()[channelIndice + 2];
+			finalImage.data()[i] = tones[e].maps().back().img()->data()[channelIndice];
+			finalImage.data()[++i /*+ 1*/] = tones[e+1].maps().back().img()->data()[channelIndice + 1];
+			finalImage.data()[++i /*+ 3*/] = tones[e+2].maps().back().img()->data()[channelIndice + 2];
 		}
 
 		int mipMapSize(0);
@@ -119,17 +122,20 @@ int main()
 		for (int j = mipMapLevel; j >= 0; --j)
 		{
 
-			const ci::CImg<unsigned char>& blueMipMap = tones[e].maps()[j].img();
-			const ci::CImg<unsigned char>& greenMipMap = tones[e + 1].maps()[j].img();
-			const ci::CImg<unsigned char>& redMipMap = tones[e + 2].maps()[j].img();
+	/*		const CImgUniquePtr& blueMipMap = tones[e].maps()[j].img();
+			const CImgUniquePtr& greenMipMap = tones[e + 1].maps()[j].img();
+			const CImgUniquePtr& redMipMap = tones[e + 2].maps()[j].img();*/
 			cout << "1 : mipMapLevel = " << j << " | mipMapPixelDataCount = " << mipMapPixelDataCount << endl;
 
-			for (int k = 0; k < tones[e].maps()[j].img().size() * 3; ++k, ++mipMapPixelDataCount)
+			for (int k = 0; k < tones[e].maps()[j].img()->size() * 3; ++k, ++mipMapPixelDataCount)
 			{
 
-				mipMapsDatas[mipMapPixelDataCount] = blueMipMap.data()[k];
-				mipMapsDatas[++mipMapPixelDataCount] = greenMipMap.data()[++k];
-				mipMapsDatas[++mipMapPixelDataCount] = redMipMap.data()[++k];
+				/*mipMapsDatas[mipMapPixelDataCount] = blueMipMap->data()[k];
+				mipMapsDatas[++mipMapPixelDataCount] = greenMipMap->data()[++k];
+				mipMapsDatas[++mipMapPixelDataCount] = redMipMap->data()[++k];*/
+				mipMapsDatas[mipMapPixelDataCount] = tones[e].maps()[j].img()->data()[k];
+				mipMapsDatas[++mipMapPixelDataCount] = tones[e + 1].maps()[j].img()->data()[++k];
+				mipMapsDatas[++mipMapPixelDataCount] = tones[e + 2].maps()[j].img()->data()[++k];
 				//
 				// Error ici ya un truc qui se fait pas bien.
 				//
@@ -137,7 +143,7 @@ int main()
 					mipMapsDatas[++mipMapPixelDataCount] = tones[e + 1].maps()[mipMapLevel].img().data()[++k];
 					mipMapsDatas[++mipMapPixelDataCount] = tones[e + 2].maps()[mipMapLevel].img().data()[++k];*/
 			}
-			cout << "2 : mipMapLevel = " << j << " | mipMapPixelDataCount = " << mipMapPixelDataCount << " | img data size = " << tones[e].maps()[j].img().size() << endl;
+			cout << "2 : mipMapLevel = " << j << " | mipMapPixelDataCount = " << mipMapPixelDataCount << " | img data size = " << tones[e].maps()[j].img()->size() << endl;
 
 		}
 

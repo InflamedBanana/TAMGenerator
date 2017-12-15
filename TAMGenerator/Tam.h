@@ -7,10 +7,12 @@
 #include <vector>
 #include "Position.h"
 #include <CImg/CImg.h>
+//#include "CImg.h"
+#include <memory>
 
 namespace ci = cimg_library;
 
-const unsigned char color_black[] = { 0x1, 0x1, 0x1 };
+const unsigned char color_black[] = { 1, 1, 1 };
 const unsigned char color_white[] = { 255, 255, 255 };
 const unsigned char color_red[] = { 255, 0, 0 };
 
@@ -57,13 +59,17 @@ public:
 	unsigned int length( unsigned int value ) { m_length = value; }
 };
 
+typedef std::shared_ptr<ci::CImg<unsigned char>> CImgUniquePtr;
+
 class Map
 {
 private:
 	Map();
 
 	std::unordered_set<Circle*> m_circles;
-	ci::CImg<unsigned char>* m_img;
+	//ci::CImg<unsigned char>* m_img;
+
+	CImgUniquePtr m_img;
 	int m_greyLvl;
 	int m_size;
 	bool m_isGenerated;
@@ -78,14 +84,14 @@ public:
 	//Map(const Map& _map);
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
-	const ci::CImg<unsigned char>& img() const { return *m_img; }
+	const CImgUniquePtr& img() const { return m_img; }
 	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
 
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
-	void Resize( const float _resizeValue, const ci::CImg<unsigned char>& _higherImg );
+	void Resize( const float _resizeValue, const Map& _higherMap );
 	void Generate( const Map* _precedingMap, const Map* _precedingToneMap );
 	void SaveMap();
 };
