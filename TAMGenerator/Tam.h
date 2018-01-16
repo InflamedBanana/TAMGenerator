@@ -59,7 +59,7 @@ public:
 	unsigned int length( unsigned int value ) { m_length = value; }
 };
 
-typedef std::shared_ptr<ci::CImg<unsigned char>> CImgUniquePtr;
+typedef std::shared_ptr<ci::CImg<char>> CImgSharedPtr;
 
 class Map
 {
@@ -67,9 +67,9 @@ private:
 	Map();
 
 	std::unordered_set<Circle*> m_circles;
-	//ci::CImg<unsigned char>* m_img;
+	//ci::CImg<char>* m_img;
 
-	CImgUniquePtr m_img;
+	CImgSharedPtr m_img;
 	int m_greyLvl;
 	int m_size;
 	bool m_isGenerated;
@@ -84,8 +84,8 @@ public:
 	//Map(const Map& _map);
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
-	const CImgUniquePtr& img() const { return m_img; }
-	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
+	const CImgSharedPtr& img() const { return m_img; }
+	//void img(const ci::CImg<char>& _img) { m_img = _img; }
 
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
@@ -106,7 +106,7 @@ private:
 
 public:
 	Tone( int _greyLvl );
-	std::vector<Map> maps() const { return m_maps; }
+	const std::vector<Map> maps() const { return m_maps; }
 	int greylvl() const { return m_greylvl; }
 
 	void Generate( const int _maxMapSize, const Tone* _precedingTone = nullptr );

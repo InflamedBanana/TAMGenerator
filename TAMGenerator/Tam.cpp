@@ -17,12 +17,12 @@ Circle::Circle( Position _position, unsigned int _radius )
 	: Point( _position ), m_radius( _radius ) {}
 
 
-Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated(false), m_img( make_shared<ci::CImg<unsigned char>>(1, 1, 1, 1, 255)) {}
+Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated(false), m_img( make_shared<ci::CImg<char>>(1, 1, 1, 1, 255)) {}
 Map::Map( int _size, int _greylvl ) :
 	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ?
 	( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
 	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated(false),
-	m_img( make_shared<ci::CImg<unsigned char>>(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255) )
+	m_img( make_shared<ci::CImg<char>>(_size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255) )
 {}
 
 Map::~Map()
@@ -132,10 +132,10 @@ void Map::Resize( const float _resizeValue, const Map& _higherMap )
 {
 	int newMapSize( static_cast<int>(m_size * _resizeValue ));
 
-	CImgUniquePtr lowerImg(make_shared<ci::CImg<unsigned char>>());
+	CImgSharedPtr lowerImg(make_shared<ci::CImg<char>>());
 	lowerImg->assign( newMapSize, newMapSize, 1, 1 );
 
-	ci::CImg<unsigned char> higherImg( _higherMap.img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ) , false );
+	ci::CImg<char> higherImg( _higherMap.img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ) , false );
 
 	for( int x = 0; x < newMapSize; ++x )
 		for( int y = 0; y < newMapSize; ++y )
