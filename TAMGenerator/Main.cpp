@@ -37,26 +37,9 @@ int main()
 			toneIt->Generate( options::maxMapSize, &( *( toneIt - 1 ) ) );
 	}
 
-	//CImg<char>redimg(tone.maps()[0].img());
-
+	
 	for( int i = 0; i < tones.size(); ++i )
 		cout << tones[ i ].maps()[ 0 ].img()->size() << endl;
-
-	//int mipMapSize(0);
-
-	//for (int i = 0; i < tones[0].maps().size() - 1; i++)
-	//{
-	//	if (tones[0].maps()[i].size() == 1)
-	//		mipMapSize += 4;
-	//	else
-	//		mipMapSize += (int)pow(tones[0].maps()[i].size(), 2) * 3;
-
-	//	cout << "map size " << tones[0].maps()[i].size() << " data size : " << tones[0].maps()[i].img().size() << "  nb of channel " << tones[0].maps()[i].img().spectrum() << endl;
-	//}
-
-
-	//for (int i = 0; i < tones[2].maps()[0].img().size(); ++i)
-		//cout << (int)*(tones[2].maps()[0].img().data() + i) << endl;
 
 #define SAVE_DDS
 
@@ -72,7 +55,7 @@ int main()
 	header.height = options::maxMapSize;
 	header.width = options::maxMapSize;
 	header.ddspf = dx::DDSPF_R8G8B8;
-	header.pitchOrLinearSize = (int)( ( ( options::maxMapSize ) * header.ddspf.RGBBitCount/*(sizeof(unsigned char) * 3*)*/ + 7 ) / 8 );
+	header.pitchOrLinearSize = (int)( ( ( options::maxMapSize ) * header.ddspf.RGBBitCount + 7 ) / 8 );
 	//header.caps = DDS_SURFACE_FLAGS_TEXTURE;
 	header.caps = DDS_SURFACE_FLAGS_TEXTURE | DDS_SURFACE_FLAGS_MIPMAP;
 	header.mipMapCount = (int)log2( options::maxMapSize ) + 1;

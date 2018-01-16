@@ -59,7 +59,7 @@ public:
 	unsigned int length( unsigned int value ) { m_length = value; }
 };
 
-typedef std::shared_ptr<ci::CImg<char>> CImgSharedPtr;
+typedef std::shared_ptr<ci::CImg<unsigned char>> CImgSharedPtr;
 
 class Map
 {
@@ -67,7 +67,7 @@ private:
 	Map();
 
 	std::unordered_set<Circle*> m_circles;
-	//ci::CImg<char>* m_img;
+	//ci::CImg<unsigned char>* m_img;
 
 	CImgSharedPtr m_img;
 	int m_greyLvl;
@@ -85,7 +85,7 @@ public:
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const CImgSharedPtr& img() const { return m_img; }
-	//void img(const ci::CImg<char>& _img) { m_img = _img; }
+	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
 
 	int greyLvl() const { return m_greyLvl; }
 	int size() const { return m_size; }
