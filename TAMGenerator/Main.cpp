@@ -67,18 +67,18 @@ int main()
 
 	for( int e = 0; e < tones.size(); e += 3 )
 	{
-		char* test = (char*)malloc( options::maxMapSize * options::maxMapSize * 3 );
+		char* imgMainDatas = (char*)malloc( options::maxMapSize * options::maxMapSize * 3 );
 
 		for( int i = 0; i < options::maxMapSize * options::maxMapSize * 3; i += 3 )
 		{
-			test[ i ] = tones[ e ].maps().back().img()->data()[ i / 3 ];
-			test[ i + 1 ] = tones[ e + 1 ].maps().back().img()->data()[ ( i + 1 ) / 3 ];
-			test[ i + 2 ] = tones[ e + 2 ].maps().back().img()->data()[ ( i + 2 ) / 3 ];
+			imgMainDatas[ i ] = tones[ e ].maps().back().img()->data()[ i / 3 ];
+			imgMainDatas[ i + 1 ] = tones[ e + 1 ].maps().back().img()->data()[ ( i + 1 ) / 3 ];
+			imgMainDatas[ i + 2 ] = tones[ e + 2 ].maps().back().img()->data()[ ( i + 2 ) / 3 ];
 		}
 
 		int mipMapSize( 0 );
 
-		for( int i = 0; i < tones[ 0 ].maps().size() - 1; i++ )
+		for( int i = tones[ e ].maps().size() - 2; i >= 0; i-- )
 		{
 			mipMapSize += (int)pow( tones[ 0 ].maps()[ i ].size(), 2 ) * 3;
 		}
@@ -86,12 +86,6 @@ int main()
 		cout << "mip map size " << mipMapSize << endl;
 
 		char* mipMapsDatas = (char*)malloc( mipMapSize );
-
-		for( int i = 0; i < mipMapSize; ++i )
-		{
-			mipMapsDatas[ i ] = 255;
-		}
-
 
 		string fileName( "TAM_size_" );
 		fileName.append( to_string( options::maxMapSize ) );
@@ -103,14 +97,14 @@ int main()
 
 		file.write( (char*)&dx::DDS_MAGIC, sizeof( dx::DDS_MAGIC ) );
 		file.write( (char*)&header, sizeof( header ) );
-		file.write( test, options::maxMapSize * options::maxMapSize * 3 );
+		file.write( imgMainDatas, options::maxMapSize * options::maxMapSize * 3 );
 		file.write( mipMapsDatas, mipMapSize );
 
 		file.close();
 
 		cout << "File : " << fileName << " has been saved." << endl;
 
-		free( mipMapsDatas );
+		//free( mipMapsDatas );
 
 		//save img
 		//repeat

@@ -18,14 +18,14 @@ Circle::Circle( Position _position, unsigned int _radius )
 
 
 Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 1, 255 ) ) {}
+
 Map::Map( int _size, int _greylvl ) :
 	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ?
 	( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
-	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated( false )
+	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated( false ),
+	m_img( nullptr )
 {
-	CImgSharedPtr m_img( make_shared<ci::CImg<unsigned char>>( _size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255 ) );
-
-	cout << "size " << _size << " tile offset " << m_tileOffset << " img width " << m_img->width() << " img height " << m_img->height() << endl;
+	m_img = make_shared<ci::CImg<unsigned char>>( _size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255 );
 }
 
 Map::~Map()
@@ -121,7 +121,7 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 	}
 
 	//const int center = m_size / 2;
-	//m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
+	m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
 
 	SaveMap();
 
