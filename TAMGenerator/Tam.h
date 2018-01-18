@@ -14,7 +14,11 @@ namespace ci = cimg_library;
 
 const unsigned char color_black[] = { 1, 1, 1 };
 const unsigned char color_white[] = { 255, 255, 255 };
-const unsigned char color_red[] = { 255, 0, 0 };
+const unsigned char color_red[] = { 255, 1, 1 };
+const unsigned char color_green[] = { 1, 255, 1 };
+const unsigned char color_blue[] = { 1, 1, 255 };
+const unsigned char color_cyan[] = { 1, 255, 255 };
+
 
 class Point
 {
