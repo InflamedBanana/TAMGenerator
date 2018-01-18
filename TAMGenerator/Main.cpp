@@ -65,18 +65,26 @@ int main()
 	// HEADER
 	//
 
+	//ci::CImg<unsigned char> test
+
 	for( int e = 0; e < tones.size(); e += 3 )
 	{
+		cout << 1 << endl;
 		char* imgMainDatas = (char*)malloc( options::maxMapSize * options::maxMapSize * 3 );
+
+		cout << 2 << endl;
 
 		for( int i = 0; i < options::maxMapSize * options::maxMapSize * 3; i += 3 )
 		{
-			imgMainDatas[ i ] = tones[ e ].maps().back().img()->data()[ i / 3 ];
-			imgMainDatas[ i + 1 ] = tones[ e + 1 ].maps().back().img()->data()[ ( i + 1 ) / 3 ];
-			imgMainDatas[ i + 2 ] = tones[ e + 2 ].maps().back().img()->data()[ ( i + 2 ) / 3 ];
+			imgMainDatas[ i + 2 ] = tones[ e ].maps().back().img()->data()[ i / 3 ];
+			imgMainDatas[ i + 1 ] = tones[ e + 1 ].maps().back().img()->data()[ ( i ) / 3 ];
+			imgMainDatas[ i ] = tones[ e + 2 ].maps().back().img()->data()[ ( i ) / 3 ];
+			cout << 3 << " " << i << endl;
 		}
 
 		int mipMapSize( 0 );
+
+		cout << 4 << endl;
 
 		for( int i = tones[ e ].maps().size() - 2; i >= 0; i-- )
 		{
@@ -86,6 +94,25 @@ int main()
 		cout << "mip map size " << mipMapSize << endl;
 
 		char* mipMapsDatas = (char*)malloc( mipMapSize );
+
+		int currentMapIndex = tones[ e ].maps().size() - 2;
+
+		int size = tones[ e ].maps().back().img()->size() / 4;
+
+		for( int i = 0, imgIndex = 0; i < mipMapSize; i+=3, imgIndex++ )
+		{
+			if( imgIndex >= size )
+			{
+				--currentMapIndex;
+				imgIndex = 0;
+				size /= 4;
+			}
+
+			mipMapsDatas[ i + 2] = tones[ e ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
+			mipMapsDatas[ i + 1 ] = tones[ e + 1 ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
+			mipMapsDatas[ i ] = tones[ e + 2 ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
+		}
+
 
 		string fileName( "TAM_size_" );
 		fileName.append( to_string( options::maxMapSize ) );
@@ -98,8 +125,8 @@ int main()
 		file.write( (char*)&dx::DDS_MAGIC, sizeof( dx::DDS_MAGIC ) );
 		file.write( (char*)&header, sizeof( header ) );
 		file.write( imgMainDatas, options::maxMapSize * options::maxMapSize * 3 );
-		file.write( mipMapsDatas, mipMapSize );
-
+		file.write( /*(char*)*/mipMapsDatas, mipMapSize );
+	
 		file.close();
 
 		cout << "File : " << fileName << " has been saved." << endl;

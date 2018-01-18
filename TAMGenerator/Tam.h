@@ -85,6 +85,7 @@ public:
 
 	const std::unordered_set<Circle*>& circles() const { return m_circles; }
 	const CImgSharedPtr& img() const { return m_img; }
+	const ci::CImg<unsigned char>* imgPtr() const { return m_img.get(); }
 	//void img(const ci::CImg<unsigned char>& _img) { m_img = _img; }
 
 	int greyLvl() const { return m_greyLvl; }

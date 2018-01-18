@@ -20,8 +20,7 @@ Circle::Circle( Position _position, unsigned int _radius )
 Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 1, 255 ) ) {}
 
 Map::Map( int _size, int _greylvl ) :
-	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ?
-	( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
+	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ? ( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
 	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated( false ),
 	m_img( nullptr )
 {
@@ -141,12 +140,8 @@ void Map::Resize( const float _resizeValue, const Map& _higherMap )
 		for( int y = 0; y < newMapSize; ++y )
 			( *lowerImg )( x, y, 0, 0 ) = higherImg( x, y, 0, 0 );
 
-	std::cout << "1 : Map size : " << m_size << " | lower img size : " << lowerImg->width() << " | lower img data size : " << lowerImg->size() << endl;
-
 	m_img = lowerImg;
 	m_size *= _resizeValue;
-	std::cout << "2 : Map size : " << m_size << " | lower img size : " << lowerImg->width() << " | lower img data size : " << lowerImg->size() << endl;
-	std::cout << "2 : Map size : " << m_size << " | img size : " << lowerImg->width() << " | img data size : " << lowerImg->size() << endl;
 }
 
 void Map::SaveMap()
@@ -180,8 +175,6 @@ void Tone::Generate( const int _maxMapSize, const Tone* _precedingTone )
 	}
 
 	ComputeLowerMipMaps();
-
-	//cout << "tone " << m_greylvl << " generated with " << m_maps.size() << " maps." << endl;
 }
 
 void Tone::Save()
@@ -197,8 +190,7 @@ void Tone::ComputeLowerMipMaps()
 		Map lower( m_maps[ 4 ].size(), m_greylvl );
 
 		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
-
-		std::cout << "3 : Map size : " << m_maps[ i ].size() << " | img data size : " << m_maps[ i ].img()->size() << endl;
+		m_maps[ i ] = lower;
 
 		lower.SaveMap();
 	}
