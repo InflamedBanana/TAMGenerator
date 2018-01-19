@@ -122,7 +122,9 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 	//const int center = m_size / 2;
 	m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
 
-	SaveMap();
+	//SaveMap();
+
+	cout << "Img tone : " << m_greyLvl << ", size : " << m_size << " -> Generated !" << endl;
 
 	m_isGenerated = true;
 }
@@ -193,6 +195,9 @@ void Tone::ComputeLowerMipMaps()
 		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
 		m_maps[ i ] = lower;
 
-		lower.SaveMap();
+		cout << "Img tone : " << m_maps[ i ].greyLvl() << ", size : " << m_maps[i].size() << " -> Generated !" << endl;
+
+
+		//lower.SaveMap();
 	}
 }

@@ -23,7 +23,7 @@ int main()
 
 	vector<Tone> tones;
 
-	for( int indice = 0, greyValue = 255; indice < options::nbOfGreys; ++indice, greyValue -= ( ( 255 - options::minGrey ) / ( options::nbOfGreys - 1 ) ) )
+	for( int indice = 0, greyValue = options::maxGrey; indice < options::nbOfGreys; ++indice, greyValue -= ( ( options::maxGrey - options::minGrey ) / ( options::nbOfGreys - 1 ) ) )
 	{
 		Tone tone( greyValue );
 		tones.push_back( tone );
@@ -38,8 +38,8 @@ int main()
 	}
 
 
-	for( int i = 0; i < tones.size(); ++i )
-		cout << tones[ i ].maps()[ 0 ].img()->size() << endl;
+	//for( int i = 0; i < tones.size(); ++i )
+	//	cout << tones[ i ].maps()[ 0 ].img()->size() << endl;
 
 #define SAVE_DDS
 
