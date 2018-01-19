@@ -3,18 +3,18 @@
 #include <iostream>
 #include <string>
 #include "TamOptions.h"
-#include <cmath>
+//#include <cmath>
 
 using namespace std;
 
-Point::Point() {}
-Point::Point( Position _position ) : m_position( _position ) {}
-Point::~Point() {}
+//Point::Point() {}
+//Point::Point( Position _position ) : m_position( _position ) {}
+//Point::~Point() {}
 
 
-Circle::Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {}
-Circle::Circle( Position _position, unsigned int _radius )
-	: Point( _position ), m_radius( _radius ) {}
+//Circle::Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {}
+//Circle::Circle( Position _position, unsigned int _radius )
+//	: Point( _position ), m_radius( _radius ) {}
 
 
 Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 1, 255 ) ) {}
@@ -101,6 +101,7 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 			pPosition.x = uni( rng );
 			pPosition.y = uni( rng );
 		} while( m_img->atXY( pPosition.x + m_tileOffset, pPosition.y + m_tileOffset, 0, 0 ) < 240 );
+
 		short int sign( 1 );
 		const short int variation( rand() % ( static_cast<int>( nearbyint( options::circleRadius * ( options::radiusVariation / 100.f ) + 1 ) ) ) );
 

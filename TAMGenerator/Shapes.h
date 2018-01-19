@@ -12,9 +12,9 @@ protected:
 	Position m_position;
 
 public:
-	Point();
-	Point( Position _position );
-	~Point();
+	Point() : m_position() {};
+	Point( Position _position ) : m_position( _position ) {};
+	~Point() {};
 
 	Position position() const { return m_position; }
 
@@ -34,8 +34,9 @@ public:
 	int radius() const { return m_radius; }
 	int radius( int value ) { m_radius = value; }
 
-	Circle( unsigned int _radius );
-	Circle( Position _position, unsigned int _radius );
+	Circle() : Point(), m_radius( 0 ) {};
+	Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {};
+	Circle( Position _position, unsigned int _radius ) : Point( _position ), m_radius( _radius ) {};
 };
 
 class Line : public Point
