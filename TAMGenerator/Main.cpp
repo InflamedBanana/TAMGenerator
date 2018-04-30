@@ -8,29 +8,22 @@
 #include <string>
 
 #include "Position.h"
-//#include "Tam.h"
+#include "Tam.h"
 #include "TamOptions.h"
-#include "Map.h"
 
 using namespace std;
 
 namespace dx = DirectX;
 
-#include <math.h>
-
 int main()
 {
 	srand( time( 0 ) );
 
-	cout << log2( 256 ) << endl;
-
 	options::SetOptions();
 
-	Map test( 32, 230, 175, 100 );
+	vector<Tone> tones;
 
-	/*vector<Tone> tones;
-
-	for( int indice = 0, greyValue = 255; indice < options::nbOfGreys; ++indice, greyValue -= ( ( 255 - options::minGrey ) / ( options::nbOfGreys - 1 ) ) )
+	for( int indice = 0, greyValue = options::maxGrey; indice < options::nbOfGreys; ++indice, greyValue -= ( ( options::maxGrey - options::minGrey ) / ( options::nbOfGreys - 1 ) ) )
 	{
 		Tone tone( greyValue );
 		tones.push_back( tone );
@@ -44,11 +37,11 @@ int main()
 			toneIt->Generate( options::maxMapSize, &( *( toneIt - 1 ) ) );
 	}
 
-	
-	for( int i = 0; i < tones.size(); ++i )
-		cout << tones[ i ].maps()[ 0 ].img()->size() << endl;*/
 
-//#define SAVE_DDS
+	//for( int i = 0; i < tones.size(); ++i )
+	//	cout << tones[ i ].maps()[ 0 ].img()->size() << endl;
+
+#define SAVE_DDS
 
 #ifdef SAVE_DDS
 
@@ -74,7 +67,7 @@ int main()
 
 	//ci::CImg<unsigned char> test
 
-	for( int e = 0; e < tones.size(); e += 3 )
+	/*for( int e = 0; e < tones.size(); e += 3 )
 	{
 		cout << 1 << endl;
 		char* imgMainDatas = (char*)malloc( options::maxMapSize * options::maxMapSize * 3 );
@@ -118,31 +111,40 @@ int main()
 			mipMapsDatas[ i + 2] = tones[ e ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
 			mipMapsDatas[ i + 1 ] = tones[ e + 1 ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
 			mipMapsDatas[ i ] = tones[ e + 2 ].maps()[ currentMapIndex ].img()->data()[ imgIndex ];
-		}
+		}*/
 
-
-		string fileName( "TAM_size_" );
+	for( int e = 0; e < tones.size(); e++ )
+	{
+		string fileName( "TAM_Size_" );
 		fileName.append( to_string( options::maxMapSize ) );
-		fileName.append( "_" );
-		fileName.append( to_string( e / 3 ) );
+		fileName.append( "_Tone_" );
+		fileName.append( to_string( e ) );
 		fileName.append( ".dds" );
 
 		ofstream file( fileName, ios::binary );
 
 		file.write( (char*)&dx::DDS_MAGIC, sizeof( dx::DDS_MAGIC ) );
 		file.write( (char*)&header, sizeof( header ) );
-		file.write( imgMainDatas, options::maxMapSize * options::maxMapSize * 3 );
-		file.write( /*(char*)*/mipMapsDatas, mipMapSize );
-	
+		file.write( (char*)tones[ e ].maps().back().img()->get_permute_axes("cxyz").data(), tones[ e ].maps().back().img()->size() );
+
+
+		for( int i = tones[ e ].maps().size() - 2; i >= 0; --i )
+		{
+			ci::CImg<unsigned char> temp = tones[ e ].maps()[ i ].img()->get_permute_axes( "cxyz" );
+			file.write( (char*)temp.data(), tones[ e ].maps()[ i ].img()->size() );
+		}
+
 		file.close();
 
 		cout << "File : " << fileName << " has been saved." << endl;
-
-		//free( mipMapsDatas );
-
-		//save img
-		//repeat
 	}
+
+
+	//free( mipMapsDatas );
+
+	//save img
+	//repeat
+//}
 #endif // SAVE_DDS
 
 	cout << "FINISHED" << endl;

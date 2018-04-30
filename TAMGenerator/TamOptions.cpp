@@ -16,8 +16,8 @@ void TamOptions::SetOptions()
 	do { std::cin >> nbOfGreys; } while ( nbOfGreys % 3 != 0 );
 	std::cout << "min grey value :" << std::endl;
 	do { std::cin >> minGrey; } while (minGrey < 0 || minGrey > 255);
-	//std::cout << "max grey value :" << std::endl;
-	//do { std::cin >> maxGrey; } while (maxGrey < minGrey || maxGrey > 255);
+	std::cout << "max grey value :" << std::endl;
+	do { std::cin >> maxGrey; } while (maxGrey < minGrey || maxGrey > 255);
 	std::cout << "max map size :" << std::endl;
 	do { std::cin >> maxMapSize; } while (maxMapSize < 16 || !(maxMapSize & (maxMapSize - 1)) == 0);
 	std::cout << "Circle Radius :" << std::endl;

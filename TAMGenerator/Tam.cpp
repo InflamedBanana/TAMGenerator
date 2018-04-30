@@ -17,14 +17,14 @@ using namespace std;
 //	: Point( _position ), m_radius( _radius ) {}
 
 
-Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 1, 255 ) ) {}
+Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 3, 255 ) ) {}
 
 Map::Map( int _size, int _greylvl ) :
 	m_tileOffset( ( ( options::circleRadius * 2 ) + 1 ) * ( ( options::radiusVariation > 0 ) ? ( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 ) ),
 	m_size( _size ), m_greyLvl( _greylvl ), m_isGenerated( false ),
 	m_img( nullptr )
 {
-	m_img = make_shared<ci::CImg<unsigned char>>( _size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 1, 255 );
+	m_img = make_shared<ci::CImg<unsigned char>>( _size + m_tileOffset * 2, _size + m_tileOffset * 2, 1, 3, 255 );
 }
 
 Map::~Map()
@@ -123,7 +123,9 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 	//const int center = m_size / 2;
 	m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
 
-	SaveMap();
+	//SaveMap();
+
+	cout << "Img tone : " << m_greyLvl << ", size : " << m_size << " -> Generated !" << endl;
 
 	m_isGenerated = true;
 }
@@ -133,13 +135,14 @@ void Map::Resize( const float _resizeValue, const Map& _higherMap )
 	int newMapSize( static_cast<int>( m_size * _resizeValue ) );
 
 	CImgSharedPtr lowerImg( make_shared<ci::CImg<unsigned char>>() );
-	lowerImg->assign( newMapSize, newMapSize, 1, 1 );
+	lowerImg->assign( newMapSize, newMapSize, 1, 3 );
 
 	ci::CImg<unsigned char> higherImg( _higherMap.img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ), false );
 
-	for( int x = 0; x < newMapSize; ++x )
-		for( int y = 0; y < newMapSize; ++y )
-			( *lowerImg )( x, y, 0, 0 ) = higherImg( x, y, 0, 0 );
+	for(int c = 0; c < 3; c++ )
+		for( int x = 0; x < newMapSize; ++x )
+			for( int y = 0; y < newMapSize; ++y )
+				( *lowerImg )( x, y, 0, c ) = higherImg( x, y, 0, c );
 
 	m_img = lowerImg;
 	m_size *= _resizeValue;
@@ -193,6 +196,9 @@ void Tone::ComputeLowerMipMaps()
 		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
 		m_maps[ i ] = lower;
 
-		lower.SaveMap();
+		cout << "Img tone : " << m_maps[ i ].greyLvl() << ", size : " << m_maps[i].size() << " -> Generated !" << endl;
+
+
+		//lower.SaveMap();
 	}
 }
