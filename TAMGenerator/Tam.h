@@ -96,7 +96,7 @@ public:
 	int size() const { return m_size; }
 	bool isGenerated() const { return m_isGenerated; }
 
-	void Resize( const float _resizeValue, const Map& _higherMap );
+	void Resize( const float _resizeValue, const Map* _higherMap );
 	void Generate( const Map* _precedingMap, const Map* _precedingToneMap );
 	void SaveMap();
 };
@@ -104,14 +104,14 @@ public:
 class Tone
 {
 private:
-	std::vector<Map> m_maps;
+	std::vector<Map*> m_maps;
 	int m_greylvl;
 
 	void ComputeLowerMipMaps();
 
 public:
 	Tone( int _greyLvl );
-	const std::vector<Map> maps() const { return m_maps; }
+	const std::vector<Map*> maps() const { return m_maps; }
 	int greylvl() const { return m_greylvl; }
 
 	void Generate( const int _maxMapSize, const Tone* _precedingTone = nullptr );

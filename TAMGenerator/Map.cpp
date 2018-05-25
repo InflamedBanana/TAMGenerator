@@ -14,6 +14,10 @@ using namespace std;
 /*const*/ unsigned char color_green[] = { 1, 255, 1 };
 /*const*/ unsigned char color_blue[] = { 1, 1, 255 };
 /*const*/ unsigned char color_cyan[] = { 1, 255, 255 };
+/*const*/ unsigned char color_magenta[] = { 255, 1, 255 };
+/*const*/ unsigned char color_yellow[] = { 255, 255, 1 };
+
+//Map::~Map(){}
 
 Map::Map( const int _size, const int _firstGreyLevel, const int _secondGreyLevel, const int _thirdGreyLevel ) :
 	/*m_mipMaps( log2( m_size ) + 1 ),*/ m_size( _size )
@@ -34,25 +38,41 @@ Map::Map( const int _size, const int _firstGreyLevel, const int _secondGreyLevel
 	}*/
 }
 
-MipMap Map::GenerateMipMap( const int _size, const int _firstGreyLevel, const int _secondGreyLevel, const int _thirdGreyLevel, const MipMap* _preceding )
+MipMap Map::GenerateMipMap( const int _size, const int _firstGreyLevel, const int _secondGreyLevel, const int _thirdGreyLevel, const MipMap* _precedingMipMap )
 {
 
 	int offset = ( 2 * options::circleRadius ) + 1 *
 		( options::radiusVariation > 0 ? ( options::circleRadius* ( options::radiusVariation / 100 ) + 1 ) : 1 );
 
-	CImgSharedPtr newImage( CImgMakeShared( _size + offset * 2, _size + offset * 2, 1, 3, 255 ) );
+	CImgSharedPtr newImage( CImgMakeShared( _size + offset * 2, _size + offset * 2, 1, 3, 1 ) );
 
-	vector<Circle> redCircles( 0 );
+	Tone redTone( _firstGreyLevel );
+	Tone greenTone( _firstGreyLevel );
+	Tone blueTone( _firstGreyLevel );
+
+	/*vector<Circle> redCircles( 0 );
 	vector<Circle> greenCircles( 0 );
-	vector<Circle> blueCircles( 0 );
+	vector<Circle> blueCircles( 0 );*/
 
 	//put preceding circles in vectors & draw them
+
+	/*if ( _precedingMipMap != nullptr )
+	{
+		for (const auto& circle : _precedingMipMap->redTone.circles)
+			redCircles.push_back(circle);
+
+		for (const auto& circle : _precedingMipMap->greenTone.circles)
+			greenCircles.push_back(circle);
+
+		for (const auto& circle : _precedingMipMap->blueTone.circles)
+			blueCircles.push_back(circle);
+	}*/
 
 	random_device rd;
 	mt19937 rng( rd() );
 	uniform_int_distribution<int> uni( 0, m_size - 1 );
 
-	Position pointPos( 0.f, 0.f );
+	Position pointPos( .0f, .0f );
 
 	/*while( !CheckTone( newImage, offset, _firstGreyLevel, 0 ) )
 	{
@@ -161,7 +181,7 @@ MipMap Map::GenerateMipMap( const int _size, const int _firstGreyLevel, const in
 		short int radius( options::circleRadius + variation * sign );
 
 		newImage->draw_circle( pointPos.xInt() + offset, pointPos.yInt() + offset, radius, color, 1.f );
-
+		
 		Position tilePos( pointPos.x + offset, pointPos.y + offset );
 		TilePoint( newImage, pointPos, offset, radius, color );
 
@@ -169,7 +189,7 @@ MipMap Map::GenerateMipMap( const int _size, const int _firstGreyLevel, const in
 
 		Circle circle( pointPos, radius );
 
-		if( !CheckTone( newImage, offset, _firstGreyLevel, 0 ) )
+		/*if( !CheckTone( newImage, offset, _firstGreyLevel, 0 ) )
 			redCircles.push_back( circle );
 		else
 		{
@@ -185,12 +205,12 @@ MipMap Map::GenerateMipMap( const int _size, const int _firstGreyLevel, const in
 			channel = 2;
 		}
 
-		blueCircles.push_back( circle );
+		blueCircles.push_back( circle );*/
 	}
 
-	Tone redTone( _firstGreyLevel, redCircles );
-	Tone greenTone( _secondGreyLevel, greenCircles );
-	Tone blueTone( _thirdGreyLevel, blueCircles );
+	//Tone redTone( _firstGreyLevel, redCircles );
+	//Tone greenTone( _secondGreyLevel, greenCircles );
+	//Tone blueTone( _thirdGreyLevel, blueCircles );
 
 	MipMap map( _size, newImage, redTone, greenTone, blueTone );
 	SaveMipMapToBMP( map );
@@ -245,15 +265,10 @@ MipMap Map::GenerateLowerMipMap( const int _size, const MipMap& _ref )
 	return temp;
 }
 
-void Map::SaveMipMapToBMP(const MipMap& _mipMap) const
+void Map::SaveMipMapToBMP( const MipMap& _mipMap ) const
 {
-	
-		string file( "" );
-		file.append( to_string( _mipMap.greenTone.greyLevel ) );
-		file.append( "_" );
-		file.append( to_string( _mipMap.size ) );
-		file.append( ".bmp" );
+	string file( to_string( _mipMap.greenTone.greyLevel ) +
+				"_" + to_string( _mipMap.size ) + ".bmp" );
 
-		_mipMap.image->save( file.c_str() );
-	
+	_mipMap.image->save( file.c_str() );
 }

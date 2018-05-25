@@ -3,18 +3,19 @@
 #include <iostream>
 #include <string>
 #include "TamOptions.h"
+#include <math.h>
 //#include <cmath>
 
 using namespace std;
 
-//Point::Point() {}
-//Point::Point( Position _position ) : m_position( _position ) {}
-//Point::~Point() {}
+Point::Point() {}
+Point::Point( Position _position ) : m_position( _position ) {}
+Point::~Point() {}
 
 
-//Circle::Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {}
-//Circle::Circle( Position _position, unsigned int _radius )
-//	: Point( _position ), m_radius( _radius ) {}
+Circle::Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {}
+Circle::Circle( Position _position, unsigned int _radius )
+	: Point( _position ), m_radius( _radius ) {}
 
 
 Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 3, 255 ) ) {}
@@ -108,7 +109,7 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 		if( options::radiusVariation > 0 )
 			sign = ( rand() % 2 + 1 ) < 1 ? -1 : 1;
 
-		short int radius( options::circleRadius + variation * sign );
+		short int radius( max( options::circleRadius + variation * sign, 1 ) );
 
 		m_img->draw_circle( pPosition.xInt() + m_tileOffset, pPosition.yInt() + m_tileOffset, radius, color_black, 1.f );
 
@@ -120,24 +121,21 @@ void Map::Generate( const Map* _precedingMap, const Map* _precedingToneMap )
 		m_circles.insert( new Circle( pPosition, radius ) );
 	}
 
-	//const int center = m_size / 2;
 	m_img->crop( m_tileOffset + 1, m_tileOffset + 1, m_tileOffset + m_size, m_tileOffset + m_size );
-
-	//SaveMap();
 
 	cout << "Img tone : " << m_greyLvl << ", size : " << m_size << " -> Generated !" << endl;
 
 	m_isGenerated = true;
 }
 
-void Map::Resize( const float _resizeValue, const Map& _higherMap )
+void Map::Resize( const float _resizeValue, const Map* _higherMap )
 {
 	int newMapSize( static_cast<int>( m_size * _resizeValue ) );
 
 	CImgSharedPtr lowerImg( make_shared<ci::CImg<unsigned char>>() );
 	lowerImg->assign( newMapSize, newMapSize, 1, 3 );
 
-	ci::CImg<unsigned char> higherImg( _higherMap.img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ), false );
+	ci::CImg<unsigned char> higherImg( _higherMap->img()->get_resize( _resizeValue * -100, _resizeValue * -100, -100, -100, 3 ), false );
 
 	for(int c = 0; c < 3; c++ )
 		for( int x = 0; x < newMapSize; ++x )
@@ -159,23 +157,27 @@ void Map::SaveMap()
 	m_img->save( file.c_str() );
 }
 
-Tone::Tone( int _greyLvl ) : m_greylvl( _greyLvl ) {};
+Tone::Tone( int _greyLvl ) : m_greylvl( _greyLvl ), m_maps(0) {};
 
 void Tone::Generate( const int _maxMapSize, const Tone* _precedingTone )
 {
 	for( int size = 1; size < _maxMapSize * 2; size *= 2 )
 	{
-		Map newMap( size, m_greylvl );
+		Map* newMap = new Map( size, m_greylvl );
 		m_maps.push_back( newMap );
 	}
 
-	int i( 0 );
-	for( vector<Map>::iterator it = m_maps.begin() + 4; it != m_maps.end(); ++it, ++i )
+	int i( 4 );
+
+
+	for( vector<Map*>::iterator it = m_maps.begin() + 4; it != m_maps.end(); ++it, ++i )
 	{
-		if( i == 0 )
-			it->Generate( nullptr, ( _precedingTone == nullptr ) ? nullptr : &_precedingTone->maps()[ i ] );
+		Map* precedingTone = (_precedingTone == nullptr) ? nullptr : _precedingTone->maps()[i];
+
+		if( i == 4 )
+			(*it)->Generate( nullptr, precedingTone);
 		else
-			it->Generate( &( *( it - 1 ) ), ( _precedingTone == nullptr ) ? nullptr : &_precedingTone->maps()[ i ] );
+			(*it)->Generate( /*&(*/ *( it - 1 ) /*)*/, precedingTone);
 	}
 
 	ComputeLowerMipMaps();
@@ -184,19 +186,20 @@ void Tone::Generate( const int _maxMapSize, const Tone* _precedingTone )
 void Tone::Save()
 {
 	for( auto& map : m_maps )
-		map.SaveMap();
+		map->SaveMap();
 }
 
 void Tone::ComputeLowerMipMaps()
 {
 	for( int i = 3; i >= 0; i-- )
 	{
-		Map lower( m_maps[ 4 ].size(), m_greylvl );
+		//Map lower( m_maps[ 4 ]->size(), m_greylvl );
+		Map* lower = new Map( m_maps[4]->size(), m_greylvl );
+		lower->Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
 
-		lower.Resize( 1 / pow( 2, 4 - i ), m_maps[ 4 ] );
 		m_maps[ i ] = lower;
 
-		cout << "Img tone : " << m_maps[ i ].greyLvl() << ", size : " << m_maps[i].size() << " -> Generated !" << endl;
+		cout << "Img tone : " << m_maps[ i ]->greyLvl() << ", size : " << m_maps[i]->size() << " -> Generated !" << endl;
 
 
 		//lower.SaveMap();

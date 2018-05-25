@@ -21,7 +21,7 @@
     <ClCompile Include="TamOptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Map.cpp">
+    <ClCompile Include="Tam.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,10 +38,7 @@
     <ClInclude Include="DDSSerializer.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shapes.h">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Map.h">
+    <ClInclude Include="Tam.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>

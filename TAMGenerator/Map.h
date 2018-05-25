@@ -29,6 +29,7 @@ struct Tone
 	int greyLevel;
 
 	Tone() : circles( 0 ), greyLevel( 0 ) {}
+	Tone( int _greyLevel ) : greyLevel( greyLevel ) {}
 	Tone( int _greyLevel, std::vector<Circle> _circles ) : greyLevel( _greyLevel), circles( _circles ) {}
 };
 
@@ -54,7 +55,7 @@ private:
 	int m_size;
 
 	Map() : m_mipMaps( 0 ) {};
-	
+
 
 	MipMap GenerateMipMap(const  int _size, const int _firstGreyLevel, const int _secondGreyLevel, const int _thirdGreyLevel, const MipMap* _preceding = nullptr );
 	MipMap GenerateLowerMipMap( const int _size, const MipMap& _ref );
