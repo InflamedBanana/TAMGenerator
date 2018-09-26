@@ -18,6 +18,21 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\dds.h" />
+    <ClInclude Include="src\DDSSerializer.h" />
+    <ClInclude Include="src\Map.h" />
+    <ClInclude Include="src\Position.h" />
+    <ClInclude Include="src\Shapes.h" />
+    <ClInclude Include="src\Tam.h" />
+    <ClInclude Include="src\TamOptions.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Map.cpp" />
+    <ClCompile Include="src\Tam.cpp" />
+    <ClCompile Include="src\TamOptions.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{58B96C68-B6CE-4AF4-9525-B67161935449}</ProjectGuid>
@@ -115,18 +130,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Tam.cpp" />
-    <ClCompile Include="TamOptions.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="dds.h" />
-    <ClInclude Include="DDSSerializer.h" />
-    <ClInclude Include="Position.h" />
-    <ClInclude Include="Tam.h" />
-    <ClInclude Include="TamOptions.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

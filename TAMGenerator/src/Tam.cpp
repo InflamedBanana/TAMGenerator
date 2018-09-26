@@ -3,20 +3,9 @@
 #include <iostream>
 #include <string>
 #include "TamOptions.h"
-#include <math.h>
-//#include <cmath>
+#include <cmath>
 
 using namespace std;
-
-Point::Point() {}
-Point::Point( Position _position ) : m_position( _position ) {}
-Point::~Point() {}
-
-
-Circle::Circle( unsigned int _radius ) : Point(), m_radius( _radius ) {}
-Circle::Circle( Position _position, unsigned int _radius )
-	: Point( _position ), m_radius( _radius ) {}
-
 
 Map::Map() : m_size( 1 ), m_greyLvl( 0 ), m_isGenerated( false ), m_img( make_shared<ci::CImg<unsigned char>>( 1, 1, 1, 3, 255 ) ) {}
 

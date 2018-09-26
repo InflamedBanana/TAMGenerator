@@ -7,8 +7,8 @@
 #include <vector>
 #include "Position.h"
 #include <CImg/CImg.h>
-//#include "CImg.h"
 #include <memory>
+#include "Shapes.h"
 
 namespace ci = cimg_library;
 
@@ -18,50 +18,6 @@ const unsigned char color_red[] = { 255, 1, 1 };
 const unsigned char color_green[] = { 1, 255, 1 };
 const unsigned char color_blue[] = { 1, 1, 255 };
 const unsigned char color_cyan[] = { 1, 255, 255 };
-
-
-class Point
-{
-
-protected:
-	Position m_position;
-
-public:
-	Point();
-	Point( Position _position );
-	~Point();
-
-	Position position() const { return m_position; }
-
-	bool operator==( Point& b )
-	{
-		return ( this->m_position == b.m_position );
-	}
-};
-
-class Circle : public Point
-{
-
-private:
-	unsigned int m_radius;
-
-public:
-	int radius() const { return m_radius; }
-	int radius( int value ) { m_radius = value; }
-
-	Circle( unsigned int _radius );
-	Circle( Position _position, unsigned int _radius );
-};
-
-class Line : public Point
-{
-private:
-	unsigned int m_length;
-
-public:
-	unsigned int length() const { return m_length; }
-	unsigned int length( unsigned int value ) { m_length = value; }
-};
 
 typedef std::shared_ptr<ci::CImg<unsigned char>> CImgSharedPtr;
 
