@@ -12,10 +12,10 @@ Different variables includes, number & size of the maps, lowest & darkest tones,
 
 Packed maps :
 
-[![Dot TonalArtMap](/imgs/tam_packed.png)]
+[![Dot TonalArtMap](/imgs/tam_packed.png)
 
 Result unpacked ( without mip maps ) :
 
-[![Dot TonalArtMap](/imgs/tam.png)]
+[![Dot TonalArtMap](/imgs/tam.png)
 
 
